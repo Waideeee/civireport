@@ -1,0 +1,24 @@
+.page {
+  margin-left: 90px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+} 
+      .page.active {
+        display: block;
+      }
+
+            .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+      }
+.table-card {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 24px;
+      }

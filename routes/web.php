@@ -10,21 +10,17 @@ Route::get('/sidebar', function (){
     return view('partials.sidebar');
 })->name('sidebar');
 
-Route::get('/ViewReport', function () {
-    return view('ViewReport');
-})->name('ViewReport');
+Route::get('/Complaints', function () {
+    return view('pages.Complaints');
+})->name('Complaints');
 
 Route::get('/Announcements', function(){
     return view('pages.Announcements');
 })->name('Announcements');
 
-Route::get('/AccountApproval', function() {
-    return view('pages.AccountApproval');
-})->name('AccountApproval');
-
-Route::get('/RegisteredResidents', function() {
-    return view('pages.RegisteredResidents');
-})->name('RegisteredResidents');
+Route::get('/UserRecords', function(){
+    return view('pages.UserRecords');
+})->name('UserRecords');
 
 Route::get('/AuditLog', function (){
     return view('pages.AuditLog');
@@ -33,11 +29,6 @@ Route::get('/AuditLog', function (){
 Route::get('/ReportAnalytics', function(){
     return view('pages.ReportAnalytics');
 })->name('ReportAnalytics');
-
-
-
- 
-
 
 
 

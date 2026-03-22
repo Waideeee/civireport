@@ -1,3 +1,12 @@
+@import './sidebar.css';
+@import './dashboard.css'; 
+@import './Announcements.css';
+@import './Complaints.css';
+@import './UserRecords.css';
+@import './AuditLog.css';
+@import './ReportAnalytics.css';
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,3 +14,24 @@
 [x-cloak] {
     display: none;
 }
+
+:root {
+  --sidebar-width: 15rem;
+}
+
+.main-content {
+  margin-left: 15rem;
+  width: calc(100% - 15rem);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.main {
+  margin-left: 15rem;
+  width: calc(100% - 15rem);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  
+}
+
