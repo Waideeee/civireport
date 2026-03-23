@@ -122,7 +122,58 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('md-name').textContent = c.name;
     document.getElementById('md-date').textContent = c.date_filed;
 
+    // Store current complaint ticket_id for download
+    document.getElementById('modal-overlay').dataset.currentTicket = ticket_id;
+
     document.getElementById('modal-overlay').classList.add('open');
+  };
+
+  // ===== Download Complaint =====
+  window.downloadComplaint = function () {
+    const ticket_id = document.getElementById('modal-overlay').dataset.currentTicket;
+    const c = complaints.find(x => x.ticket_id === ticket_id);
+    if (!c) return;
+
+    const line = '='.repeat(42);
+    const divider = '-'.repeat(42);
+
+    const content = [
+      line,
+      '       BARANGAY COMPLAINT REPORT',
+      line,
+      '',
+      `  Ticket ID     : ${c.ticket_id}`,
+      `  Date Filed    : ${c.date_filed}`,
+      `  Status        : ${c.status}`,
+      '',
+      divider,
+      '  COMPLAINT DETAILS',
+      divider,
+      `  Complaint Type    : ${c.type}`,
+      `  Complaint Subtype : ${c.subtype}`,
+      `  Location          : ${c.location}`,
+      `  Additional Notes  : ${c.notes}`,
+      '',
+      divider,
+      '  COMPLAINANT INFORMATION',
+      divider,
+      `  Name              : ${c.name}`,
+      `  Contact No.       : ${c.contact}`,
+      '',
+      line,
+      `  Generated on: ${new Date().toLocaleString('en-PH')}`,
+      line,
+    ].join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Complaint_${c.ticket_id.replace('#', '')}_${c.name.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // ===== Close Modal =====

@@ -19,19 +19,4 @@
   --sidebar-width: 15rem;
 }
 
-.main-content {
-  margin-left: 15rem;
-  width: calc(100% - 15rem);
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-.main {
-  margin-left: 15rem;
-  width: calc(100% - 15rem);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  
-}
 

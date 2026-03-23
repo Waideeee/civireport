@@ -2,29 +2,34 @@
 
 @section('content')
 
-@vite(['resources/css/app.css', 'resources/css/ReportAnalytics.css'])
+@vite(['resources/css/app.css', 'resources/css/ReportAnalytics.css', 'resources/js/ReportAnalytics.js'])
 
 <div class="main">
   <div class="content">
 
-    <div class="section-title">Analytics and Charts</div>
-    <div class="section-sub">Summary of complaints across all categories.</div>
+    <div class="analytics-header">
+      <div>
+        <div class="section-title">Analytics and Charts</div>
+        <div class="section-sub">Summary of complaints across all categories.</div>
+      </div>
+      <button class="btn-download" onclick="downloadAnalytics()">Download Report</button>
+    </div>
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-num"></div>
+        <div class="stat-num" id="stat-total"></div>
         <div class="stat-label">Total Reports</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num"></div>
+        <div class="stat-num" id="stat-resolved"></div>
         <div class="stat-label">Resolved</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num"></div>
+        <div class="stat-num" id="stat-pending"></div>
         <div class="stat-label">Pending</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num"></div>
+        <div class="stat-num" id="stat-rate"></div>
         <div class="stat-label">Resolution Rate</div>
       </div>
     </div>

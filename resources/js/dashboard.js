@@ -1,37 +1,19 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.addEventListener('load', function () {
 
   // ===== Topbar Date =====
- const dateEl = document.getElementById('topbar-date');
-if (dateEl) {  // ← check muna bago i-set
-  const d = new Date();
-  dateEl.textContent = d.toLocaleDateString('en-PH', {
-    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-  });
-}
+  const dateEl = document.getElementById('topbar-date');
+  if (dateEl) {
+    const d = new Date();
+    dateEl.textContent = d.toLocaleDateString('en-PH', {
+      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+    });
+  }
 
   // ===== Sample Data =====
   const reports = [
-    {
-      id: "TKT-001",
-      type: "Peace & Order",
-      name: "Juan Dela Cruz",
-      status: "Pending",
-      filed: "02/19/2026"
-    },
-    {
-      id: "TKT-002",
-      type: "Infrastructure",
-      name: "Maria Santos",
-      status: "Approved",
-      filed: "02/18/2026"
-    },
-    {
-      id: "TKT-003",
-      type: "Health & Sanitation",
-      name: "Pedro Reyes",
-      status: "In Progress",
-      filed: "02/17/2026"
-    }
+    { id: "TKT-001", type: "Peace & Order", name: "Juan Dela Cruz", status: "Pending", filed: "02/19/2026" },
+    { id: "TKT-002", type: "Infrastructure", name: "Maria Santos", status: "Approved", filed: "02/18/2026" },
+    { id: "TKT-003", type: "Health & Sanitation", name: "Pedro Reyes", status: "In Progress", filed: "02/17/2026" }
   ];
 
   const pendingAccounts = [
@@ -51,35 +33,41 @@ if (dateEl) {  // ← check muna bago i-set
     { text: 'Admin approved report <strong>TKT-004</strong> (Financial Aid Request)', time: 'Feb 17, 2026 – 9:00 AM' }
   ];
 
+  const notifications = [
+    { text: 'New account registration from <strong>Roberto Cruz</strong>', time: '2 minutes ago' },
+    { text: 'Complaint <strong>TKT-006</strong> has been filed', time: '15 minutes ago' },
+    { text: 'Pending approval: <strong>Linda Go</strong> registered', time: '1 hour ago' }
+  ];
+
   // ===== Helper: get badge class =====
   function getBadgeClass(status) {
     switch (status.toLowerCase()) {
-      case 'pending': return 'badge badge-pending';
-      case 'approved': return 'badge badge-approved';
-      case 'rejected': return 'badge badge-rejected';
+      case 'pending':     return 'badge badge-pending';
+      case 'approved':    return 'badge badge-approved';
+      case 'rejected':    return 'badge badge-rejected';
       case 'in progress': return 'badge badge-progress';
-      default: return 'badge';
+      default:            return 'badge';
     }
   }
 
   // ===== Populate Stats =====
-  var pending = reports.filter(function (r) { return r.status === 'Pending'; }).length;
+  var pending    = reports.filter(function (r) { return r.status === 'Pending'; }).length;
   var inprogress = reports.filter(function (r) { return r.status === 'In Progress'; }).length;
-  var approved = reports.filter(function (r) { return r.status === 'Approved'; }).length;
-  var rejected = reports.filter(function (r) { return r.status === 'Rejected'; }).length;
-  var total = reports.length;
+  var approved   = reports.filter(function (r) { return r.status === 'Approved'; }).length;
+  var rejected   = reports.filter(function (r) { return r.status === 'Rejected'; }).length;
+  var total      = reports.length;
 
-  animateCount('stat-pending', pending);
+  animateCount('stat-pending',    pending);
   animateCount('stat-inprogress', inprogress);
-  animateCount('stat-approved', approved);
-  animateCount('stat-rejected', rejected);
-  animateCount('stat-total', total);
+  animateCount('stat-approved',   approved);
+  animateCount('stat-rejected',   rejected);
+  animateCount('stat-total',      total);
 
   // ===== Animate count up =====
   function animateCount(elementId, target) {
     var el = document.getElementById(elementId);
     if (!el) return;
-    var current = 0;
+    var current  = 0;
     var duration = 600;
     var stepTime = Math.max(Math.floor(duration / (target || 1)), 30);
     var timer = setInterval(function () {
@@ -156,6 +144,51 @@ if (dateEl) {  // ← check muna bago i-set
         '</div>';
       auditDiv.appendChild(item);
     });
+  }
+
+  // ===== Notifications =====
+  var notifBtn      = document.getElementById('notif-btn');
+  var notifDropdown = document.getElementById('notif-dropdown');
+  var notifCount    = document.getElementById('notif-count');
+  var notifList     = document.getElementById('notif-list');
+  var notifMarkAll  = document.getElementById('notif-mark-all');
+
+  if (notifBtn && notifDropdown && notifCount && notifList && notifMarkAll) {
+
+    notifCount.textContent = notifications.length;
+    notifCount.style.display = notifications.length > 0 ? 'flex' : 'none';
+
+    notifList.innerHTML = '';
+    notifications.forEach(function (n) {
+      var item = document.createElement('div');
+      item.className = 'notif-item';
+      item.innerHTML =
+        '<div class="notif-dot"></div>' +
+        '<div>' +
+          '<div class="notif-text">' + n.text + '</div>' +
+          '<div class="notif-time">' + n.time + '</div>' +
+        '</div>';
+      notifList.appendChild(item);
+    });
+
+    notifBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      notifDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.classList.remove('open');
+      }
+    });
+
+    notifMarkAll.addEventListener('click', function () {
+      document.querySelectorAll('.notif-dot').forEach(function (d) {
+        d.classList.add('read');
+      });
+      notifCount.style.display = 'none';
+    });
+
   }
 
 });

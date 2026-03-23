@@ -4,13 +4,34 @@
 
 @vite(['resources/css/app.css', 'resources/css/dashboard.css'])
 @vite(['resources/js/app.js' ,'resources/js/dashboard.js'])
+
 <div class="main">
   <div class="topbar">
-    <div>
+    <div class="topbar-left">
       <h2 id="page-title">Dashboard</h2>
       <p id="page-sub">Welcome back, Admin!</p>
     </div>
-    <div class="topbar-date" id="topbar-date"></div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="topbar-date"></div>
+      <div class="notif-wrapper">
+        <button class="notif-btn" id="notif-btn" onclick="var d = document.getElementById('notif-dropdown');d.classList.contains('open') ? d.classList.remove('open') : d.classList.add('open');">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge" id="notif-count">0</span>
+        </button>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-header">
+            <span>Notifications</span>
+            <button class="notif-mark" id="notif-mark-all">Mark all as read</button>
+          </div>
+          <div id="notif-list">
+            <div class="notif-empty">No notifications</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="content">
@@ -18,7 +39,7 @@
 
       <div class="page-title">Overview</div>
       <div class="section-sub">Here's what's happening in your barangay today.</div>
-      
+
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-num" id="stat-pending">0</div>
@@ -65,7 +86,7 @@
           </table>
         </div>
       </div>
-      
+
       <div class="section-header">
         <div class="section-title">Pending Account Approvals</div>
         <a href="{{ route('UserRecords') }}" class="see-all">See all</a>

@@ -6,10 +6,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'CiviReport')</title>
 
-    @vite(['resources/css/app.css', 'resources/css/sidebar.css', 'resources/css/dashboard.css', 'resources/css/Announcements.css', 'resources/css/Complaints.css', 'resources/css/AccountApproval.css', 'resources/css/RegisteredResidents.css', 'resources/css/AuditLog.css'])
+    @vite(['resources/css/app.css',
+     'resources/css/sidebar.css',
+      'resources/css/dashboard.css', 
+      'resources/css/Announcements.css', 
+      'resources/css/Complaints.css', 
+       'resources/css/AuditLog.css', 
+       'resources/css/UserRecords.css'
+       ])
     @vite([
-    'resources/css/Complaints.css',
-    'resources/css/UserRecords.css',
     'resources/js/app.js'
     
 ])

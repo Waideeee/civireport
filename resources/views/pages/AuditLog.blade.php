@@ -2,13 +2,14 @@
 
 @section('content')
 
-@vite([ 'resources/css/app.css', 'resources/css/AuditLog.css'])
-
-        <div class="page" id="page-audit">
-          <div class="section-title" style="margin-bottom: 16px">Audit Log</div>
-          <div class="table-card" style="padding: 0 24px">
+@vite(['resources/css/app.css', 'resources/css/AuditLog.css', 'resources/js/AuditLog.js'])
+<div class="main">
+    <div class="content" id="page-audit">  
+        <div class="section-title">Audit Log</div>
+        <div class="table-card">
             <div id="audit-log"></div>
-          </div>
         </div>
+    </div>
+</div>
 
 @endsection
