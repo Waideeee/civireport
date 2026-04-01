@@ -1,0 +1,215 @@
+.main {
+  /* width: calc(100% -17rem); */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; 
+  margin-left: 0.5rem;  
+  width: 100%;
+}
+
+.main .content {
+  padding: 36px 40px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
+  /* width: calc(100% -17rem); */
+}
+
+/* ===== Approval Section ===== */
+.approval-wrapper {
+  display: block;
+}
+
+.approval-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.approval-table {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  /* width: calc(100% - 25rem); */
+}
+
+/* ===== Residents Section ===== */
+.residents-wrapper {
+  display: block;
+  margin-top: 40px;
+}
+
+.residents-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.residents-table {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  /* width: calc(100% - 45rem); */
+}
+
+/* ===== Shared Table Styles ===== */
+.table-wrap {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+thead {
+  background: white;
+}
+
+th {
+  padding: 11px 24px;
+  text-align: left;
+  color: black;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+td {
+  padding: 11px 24px;
+  color: #374151;
+  border-top: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
+
+tr:hover td {
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+/* ===== Badges ===== */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badge-pending  { background: #fef9c3; color: #854d0e; }
+.badge-approved { background: #dcfce7; color: #166534; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.badge-progress { background: #dbeafe; color: #1e40af; }
+.badge-active   { background: #dcfce7; color: #166534; }
+.badge-inactive { background: #f3f4f6; color: #6b7280; }
+
+/* ===== Actions ===== */
+.actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-success       { background: #22c55e; color: #fff; }
+.btn-success:hover { background: #16a34a; }
+.btn-danger        { background: #ef4444; color: #fff; }
+.btn-danger:hover  { background: #dc2626; }
+
+/* ===== Toolbar ===== */
+.ur-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ur-search-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ur-search-wrapper svg {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+}
+
+.ur-search {
+  height: 36px;
+  padding: 0 12px 0 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  color: #111827;
+  outline: none;
+  width: 240px;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+
+.ur-search:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.ur-count {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .main .content {
+    padding: 16px !important;
+  }
+
+  .approval-table,
+  .residents-table {
+    width: 100%;
+  }
+
+  .residents-wrapper {
+    margin-top: 40px;
+  }
+
+  th, td {
+    padding: 10px 14px;
+  }
+}

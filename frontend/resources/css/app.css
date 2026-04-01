@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import './sidebar.css';
+@import './dashboard.css'; 
+@import './Announcements.css';
+@import './Complaints.css';
+@import './UserRecords.css';
+@import './AuditLog.css';
+@import './ReportAnalytics.css';
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none;
+}
+
+:root {
+  --sidebar-width: 15rem;
+} 
+
+*{
+    font-family: 'Montserrat', sans-serif;
+}
+
+
