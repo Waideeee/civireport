@@ -102,7 +102,9 @@
   </div>
 </div>
 
-{{-- Modal --}}
+{{-- ═══════════════════════════════════════════════════════ --}}
+{{-- COMPLAINT DETAIL MODAL                                  --}}
+{{-- ═══════════════════════════════════════════════════════ --}}
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-header">
@@ -134,7 +136,7 @@
           </div>
           <div class="modal-field">
             <label>Complaint Media</label>
-            <div class="modal-media">📎 View Uploaded File</div>
+            <div class="modal-media" id="md-media-link"></div>
           </div>
         </div>
       </div>
@@ -162,12 +164,85 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModalDirect()">Close</button>
+      {{-- Download: calls downloadComplaint() which uses currentComplaint data --}}
       <button class="btn btn-download" onclick="downloadComplaint()">⬇ Download</button>
-      <button class="btn btn-danger">Reject</button>
-      <button class="btn btn-success">Approve</button>
+      {{-- Reject: opens reject confirmation modal --}}
+      <button class="btn btn-danger" onclick="showComplaintRejectModal()">Reject</button>
+      {{-- Approve: opens approve confirmation modal --}}
+      <button class="btn btn-success" onclick="showComplaintApproveModal()">Approve</button>
     </div>
   </div>
 </div>
+
+{{-- ═══════════════════════════════════════════════════════ --}}
+{{-- COMPLAINT APPROVE CONFIRMATION MODAL                    --}}
+{{-- ═══════════════════════════════════════════════════════ --}}
+<div class="cr-modal-overlay" id="complaint-approve-overlay">
+  <div class="cr-confirm-modal">
+    <div class="cr-confirm-icon cr-confirm-icon--approve">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div class="cr-confirm-title">Approve Complaint</div>
+    <div class="cr-confirm-message">
+      Are you sure you want to approve complaint
+      <strong id="approve-complaint-id"></strong>?
+      The status will be updated to <em>In Progress</em>.
+    </div>
+    <div class="cr-confirm-actions">
+      <button class="cr-btn cr-btn-ghost" onclick="closeComplaintApproveModal()">Cancel</button>
+      <button class="cr-btn cr-btn-approve" id="complaint-approve-btn" onclick="submitComplaintApprove()">
+        <span id="c-approve-text">Yes, Approve</span>
+        <span id="c-approve-spinner" style="display:none;">Processing…</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{{-- ═══════════════════════════════════════════════════════ --}}
+{{-- COMPLAINT REJECT CONFIRMATION MODAL                     --}}
+{{-- ═══════════════════════════════════════════════════════ --}}
+<div class="cr-modal-overlay" id="complaint-reject-overlay">
+  <div class="cr-confirm-modal">
+    <div class="cr-confirm-icon cr-confirm-icon--reject">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <div class="cr-confirm-title">Reject Complaint</div>
+    <div class="cr-confirm-message">
+      Are you sure you want to reject complaint
+      <strong id="reject-complaint-id"></strong>?
+      Please provide a reason below.
+    </div>
+    <div class="cr-confirm-field">
+      <label class="cr-confirm-label" for="complaint-reject-reason">
+        Reason for Rejection <span class="cr-confirm-required">*</span>
+      </label>
+      <textarea
+        id="complaint-reject-reason"
+        class="cr-confirm-textarea"
+        placeholder="Explain why this complaint is being rejected…"
+        rows="4"
+      ></textarea>
+      <div class="cr-confirm-error" id="complaint-reject-error" style="display:none;">
+        Please provide a reason for rejection.
+      </div>
+    </div>
+    <div class="cr-confirm-actions">
+      <button class="cr-btn cr-btn-ghost" onclick="closeComplaintRejectModal()">Cancel</button>
+      <button class="cr-btn cr-btn-reject" id="complaint-reject-btn" onclick="submitComplaintReject()">
+        <span id="c-reject-text">Yes, Reject</span>
+        <span id="c-reject-spinner" style="display:none;">Processing…</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 @endsection

@@ -1,6 +1,42 @@
 {
+  "resources/css/AuditLog.css": {
+    "file": "assets/AuditLog-gu_Utbcd.css",
+    "src": "resources/css/AuditLog.css",
+    "isEntry": true,
+    "name": "AuditLog",
+    "names": [
+      "AuditLog.css"
+    ]
+  },
+  "resources/css/Complaints.css": {
+    "file": "assets/Complaints-BsVDeEz0.css",
+    "src": "resources/css/Complaints.css",
+    "isEntry": true,
+    "name": "Complaints",
+    "names": [
+      "Complaints.css"
+    ]
+  },
+  "resources/css/ReportAnalytics.css": {
+    "file": "assets/ReportAnalytics-CaQXOI7n.css",
+    "src": "resources/css/ReportAnalytics.css",
+    "isEntry": true,
+    "name": "ReportAnalytics",
+    "names": [
+      "ReportAnalytics.css"
+    ]
+  },
+  "resources/css/UserRecords.css": {
+    "file": "assets/UserRecords-CsifgPl9.css",
+    "src": "resources/css/UserRecords.css",
+    "isEntry": true,
+    "name": "UserRecords",
+    "names": [
+      "UserRecords.css"
+    ]
+  },
   "resources/css/app.css": {
-    "file": "assets/app-ChjR-oXZ.css",
+    "file": "assets/app-Bfjf76WE.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -8,10 +44,42 @@
       "app.css"
     ]
   },
+  "resources/css/dashboard.css": {
+    "file": "assets/dashboard-RYSenckX.css",
+    "src": "resources/css/dashboard.css",
+    "isEntry": true,
+    "name": "dashboard",
+    "names": [
+      "dashboard.css"
+    ]
+  },
+  "resources/js/Complaints.js": {
+    "file": "assets/Complaints-CtovvuJX.js",
+    "name": "Complaints",
+    "src": "resources/js/Complaints.js",
+    "isEntry": true
+  },
+  "resources/js/ReportAnalytics.js": {
+    "file": "assets/ReportAnalytics-GNjU4M3e.js",
+    "name": "ReportAnalytics",
+    "src": "resources/js/ReportAnalytics.js",
+    "isEntry": true
+  },
+  "resources/js/UserRecords.js": {
+    "file": "assets/UserRecords-BI3qw03v.js",
+    "name": "UserRecords",
+    "src": "resources/js/UserRecords.js",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-7rJpuuP6.js",
+    "file": "assets/app-6Zj8tT-U.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "resources/js/Complaints.js",
+      "resources/js/UserRecords.js",
+      "resources/js/ReportAnalytics.js"
+    ]
   }
 }

@@ -1,13 +1,21 @@
+.main-content {
+  margin-left: 15rem !important;
+  min-height: 100vh;
+  box-sizing: border-box;
+  width: calc(100vw - 15rem) !important;
+  max-width: calc(100vw - 15rem) !important;
+}
+
 .main {
-  width: calc(100% + 34rem);
+  width: 100%;
   min-height: 100vh;
   display: flex;
-  flex-direction: column; 
-  margin-left: 4rem;  
+  flex-direction: column;
+  margin-left: 0 !important;
 }
 
 .main .content {
-  padding: 36px 40px;
+  padding: 30px 40px;
   width: 100%;
   box-sizing: border-box;
   font-family: 'Montserrat', sans-serif;
@@ -26,13 +34,14 @@
   font-weight: 700;
   color: #111827;
   margin-bottom: 6px;
-  margin-left: -5rem;
+  margin-left: 0 !important;
 }
 
 .section-sub {
   font-size: 0.8rem;
   color: #6b7280;
   margin-bottom: 25px;
+  margin-left: 0 !important;
 }
 
 /* ===== Download Button ===== */
@@ -49,9 +58,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  flex-shrink: 0;  
-  /* width: 100%;
-  width: calc(100% - 1rem); */
+  flex-shrink: 0;
 }
 
 .btn-download:hover {
@@ -64,7 +71,8 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 28px;
-  width: 100%;
+  width: 100% !important;
+  margin-left: 0 !important;
 }
 
 .stat-card {
@@ -92,7 +100,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-top: 16px;
-  width: 100%;
+  width: 100% !important;
+  margin-left: 0 !important;
 }
 
 .chart-card {

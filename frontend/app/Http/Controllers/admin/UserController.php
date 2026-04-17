@@ -29,7 +29,33 @@ class UserController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $result = $this->api->updateUserStatus($id, $request->status);
-        return response()->json($result);
+        $request->validate([
+            'status'           => 'required|in:approved,rejected,active,inactive',
+            // rejection_reason is required only when rejecting
+            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
+        ]);
+
+        $payload = ['status' => $request->status];
+
+        if ($request->status === 'rejected' && $request->filled('rejection_reason')) {
+            $payload['rejection_reason'] = $request->rejection_reason;
+        }
+
+        $result = $this->api->updateUserStatus($id, $payload);
+
+        // Always return JSON so the frontend AJAX handler can read it
+        if ($result && !isset($result['error'])) {
+            return response()->json([
+                'success' => true,
+                'message' => $request->status === 'approved'
+                    ? 'User approved successfully.'
+                    : 'User rejected.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['error'] ?? 'Failed to update user status.',
+        ], 422);
     }
 }

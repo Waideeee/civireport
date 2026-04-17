@@ -3,47 +3,61 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Announcement; 
+use App\Services\FastApiService;
 use Illuminate\Http\Request;
 
+class AnnouncementController extends Controller
+{
+    protected $api;
 
-class AnnouncementController extends Controller 
-{ 
-    public function index() { 
-        $announcements = Announcement :: latest()->get();
+    public function __construct(FastApiService $api)
+    {
+        $this->api = $api;
+    }
+
+    public function index()
+    {
+        $announcements = $this->api->getAnnouncements() ?? [];
         return view('pages.Announcements', compact('announcements'));
     }
 
-    public function create() { 
-        return view ('pages.announcements.create');
-    }
-
-    public function store(Request $request){
-        $request->validate([ 
-            'title' => 'required| string| max: 255',
-            'post_date' => 'required| date',
-            'event_date' => 'required| date',
-            'venue' => 'required| string| max: 255',
-            'description'=> 'required| string',
-            'who_will_attend' => 'required| string| max: 255',
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'title'           => 'required|string|max:255',
+            'post_date'       => 'required|date',
+            'event_date'      => 'required|date',
+            'venue'           => 'required|string|max:255',
+            'description'     => 'required|string',
+            'who_will_attend' => 'required|string|max:255',
         ]);
 
-        Announcement::create([
-            'title' => $request->title, 
-            'post_date' => $request-> post_date, 
-            'event_date' => $request-> event_date,
-            'venue' => $request-> venue,
-            'description' => $request-> description,
-            'who_will_attend' => $request-> who_will_attend,
-            'admin_id' => auth() -> id(),
-        ]);  
+        $data['admin_id'] = auth()->id();
 
+        $this->api->createAnnouncement($data);
 
-    return redirect() ->route ('Announcements')-> with ('success', 'Announcement has been posted!');
-    } 
+        return redirect()->route('Announcements')->with('success', 'Announcement has been posted!');
+    }
 
-    public function delete($id){ 
-        Announcement::findOrFail($id)-> delete(); 
-        return redirect() -> route('Announcements') -> with ('success', 'Announcement has been deleted!');
+    public function update(Request $request, $id)
+    {
+        $data = $request->validate([
+            'title'           => 'required|string|max:255',
+            'post_date'       => 'required|date',
+            'event_date'      => 'required|date',
+            'venue'           => 'required|string|max:255',
+            'description'     => 'required|string',
+            'who_will_attend' => 'required|string|max:255',
+        ]);
+
+        $this->api->updateAnnouncement($id, $data);
+
+        return redirect()->route('Announcements')->with('success', 'Announcement updated!');
+    }
+
+    public function destroy($id)
+    {
+        $this->api->deleteAnnouncement($id);
+        return redirect()->route('Announcements')->with('success', 'Announcement deleted!');
     }
 }

@@ -4,11 +4,13 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-brand"> 
-    <div class="System-logo">
-    <img src="{{ asset ('images/BarangayLogo.png')}}" alt="Barangay Logo" class="barangay-logo">
+    <div class="system-logo">
+      <img src="{{ asset('images/BarangayLogo.png') }}" alt="Barangay Logo" class="barangay-logo">
     </div>
-    <h1 class="brand-name">CiviReport</h1>
-    <p class="brand-sub">ADMIN PANEL</p>
+    <div class="brand-text">
+      <h1 class="brand-name">CiviReport</h1>
+      <p class="brand-sub">ADMIN PANEL</p>
+    </div>
   </div>
 
   <div class="sidebar-nav">

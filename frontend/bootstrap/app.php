@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'admin'            => \App\Http\Middleware\AdminMiddleware::class,
+            'active.user'      => \App\Http\Middleware\EnsureUserIsActive::class,
+            'fastapi.health'   => \App\Http\Middleware\FastApiHealthCheck::class,
+        ]);
+
+        // Apply active user check globally to all web routes
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserIsActive::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

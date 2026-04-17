@@ -90,7 +90,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const q = approvalSearch.toLowerCase();
     const filtered = pendingList.filter(u =>
-      !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      !q || 
+      String(u.id).includes(q) ||
+      (u.name && u.name.toLowerCase().includes(q)) || 
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.contact && u.contact.toLowerCase().includes(q)) ||
+      (u.date_registered && u.date_registered.toLowerCase().includes(q))
     );
 
     if (countEl) countEl.textContent = `${filtered.length} record${filtered.length !== 1 ? 's' : ''}`;
@@ -105,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
         <td><strong>${u.name}</strong></td>
         <td>${u.email}</td>
         <td>${u.contact}</td>
-        <td>${u.gender}</td>
         <td>${u.date_registered}</td>
         <td class="actions-cell">
           <button class="btn btn-success btn-approve" data-id="${u.id}">Approve</button>
@@ -153,25 +157,54 @@ document.addEventListener('DOMContentLoaded', function () {
         const id   = parseInt(this.dataset.id);
         const user = pendingList.find(u => u.id === id);
         if (!user) return;
-        showConfirm(`Reject account of ${user.name}? This cannot be undone.`, () => {
-          fetch(`/admin/users/${id}/status`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            },
-            body: JSON.stringify({ status: 'rejected' })
-          })
-          .then(res => res.json())
-          .then(() => {
-            pendingList = pendingList.filter(u => u.id !== id);
-            renderApprovals();
-            showToast(`✗ ${user.name}'s account rejected.`, 'danger');
-          });
-        });
+        
+        window.currentRejectUserId = id;
+        document.getElementById('reject-user-name').textContent = user.name;
+        document.getElementById('reject-reason').value = '';
+        document.getElementById('reject-reason-error').style.display = 'none';
+        document.getElementById('reject-modal-overlay').classList.add('active');
       });
     });
   }
+
+  window.closeRejectModal = function() {
+    document.getElementById('reject-modal-overlay').classList.remove('active');
+  };
+
+  window.submitRejection = function() {
+    const reason = document.getElementById('reject-reason').value.trim();
+    if (!reason) {
+      document.getElementById('reject-reason-error').style.display = 'block';
+      return;
+    }
+    
+    document.getElementById('reject-reason-error').style.display = 'none';
+    const id = window.currentRejectUserId;
+    const user = pendingList.find(u => u.id === id);
+    if (!user) return;
+
+    const btn = document.getElementById('reject-confirm-btn');
+    btn.disabled = true;
+
+    fetch(`/UserRecords/users/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+      },
+      body: JSON.stringify({ status: 'rejected', rejection_reason: reason })
+    })
+    .then(res => res.json())
+    .then(() => {
+      pendingList = pendingList.filter(u => u.id !== id);
+      renderApprovals();
+      closeRejectModal();
+      showToast(`✗ ${user.name}'s account rejected.`, 'danger');
+    })
+    .finally(() => {
+      btn.disabled = false;
+    });
+  };
 
   // ===== Render Registered Residents =====
   function renderResidents() {
@@ -181,7 +214,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const q = residentsSearch.toLowerCase();
     const filtered = residentsList.filter(r =>
-      !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
+      !q || 
+      String(r.id).includes(q) ||
+      (r.name && r.name.toLowerCase().includes(q)) || 
+      (r.email && r.email.toLowerCase().includes(q)) ||
+      (r.contact && r.contact.toLowerCase().includes(q)) ||
+      (r.date_registered && r.date_registered.toLowerCase().includes(q)) ||
+      (r.status && r.status.toLowerCase().includes(q)) ||
+      (r.gender && r.gender.toLowerCase().includes(q))
     );
 
     if (countEl) countEl.textContent = `${filtered.length} record${filtered.length !== 1 ? 's' : ''}`;
@@ -196,14 +236,43 @@ document.addEventListener('DOMContentLoaded', function () {
         <td><strong>${r.name}</strong></td>
         <td>${r.email}</td>
         <td>${r.contact}</td>
-        <td>${r.gender}</td>
-        <td>${r.address}</td>
         <td>${r.date_registered}</td>
-        <td>${r.date_approved}</td>
         <td><span class="badge ${r.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${r.status}</span></td>
+        <td><button class="btn btn-ghost" style="color:#2563eb; font-weight:600; font-size:0.75rem;" onclick="openResidentModal(${r.id})">View Info</button></td>
       </tr>
     `).join('');
   }
+  
+  // ===== Resident Detail Modal =====
+  window.openResidentModal = function(id) {
+    const user = residentsList.find(r => r.id === id);
+    if(!user) return;
+    
+    window.currentResident = user;
+    
+    document.getElementById('res-name').textContent = user.name;
+    document.getElementById('res-email').textContent = user.email;
+    document.getElementById('res-contact').textContent = user.contact;
+    document.getElementById('res-gender').textContent = user.gender;
+    document.getElementById('res-registered').textContent = user.date_registered;
+    document.getElementById('res-address').textContent = user.address;
+    
+    const statusEl = document.getElementById('res-status');
+    statusEl.textContent = user.status;
+    statusEl.className = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
+    
+    document.getElementById('resident-modal-overlay').classList.add('active');
+  };
+  
+  window.closeResidentModal = function() {
+    document.getElementById('resident-modal-overlay').classList.remove('active');
+  };
+  
+  window.closeResidentModalDirect = function(e) {
+    if (e.target.id === 'resident-modal-overlay') {
+      closeResidentModal();
+    }
+  };
 
   // ===== Bind Search Events =====
   document.getElementById('approval-search')?.addEventListener('input', function () {
@@ -217,6 +286,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // ===== Init =====
+  // Fallback: ensure window data is always defined
+  // (actual values are set via @json in the blade <script> block)
+  if (typeof window.pendingUsers  === 'undefined') window.pendingUsers  = [];
+  if (typeof window.approvedUsers === 'undefined') window.approvedUsers = [];
+
+  // Helper to format ISO datetimes from backend cleanly
+  function formatDT(str) {
+    if (!str) return '—';
+    return str.split('.')[0].replace('T', ' ');
+  }
+
   if (window.pendingUsers) {
     pendingList = window.pendingUsers.map(u => ({
       id: u.user_id,
@@ -225,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
       contact: u.contact_num,
       gender: u.gender,
       address: u.address,
-      date_registered: u.date_registered,
+      date_registered: formatDT(u.date_registered),
     }));
   }
 
@@ -237,12 +317,142 @@ document.addEventListener('DOMContentLoaded', function () {
       contact: u.contact_num,
       gender: u.gender,
       address: u.address,
-      date_registered: u.date_registered,
-      date_approved: u.approved_at,
+      date_registered: formatDT(u.date_registered),
+      date_approved: formatDT(u.approved_at),
       status: u.is_active ? 'Active' : 'Inactive',
     }));
   }
 
   renderApprovals();
   renderResidents();
+
+  // ===== Download Residents PDF =====
+  window.downloadResidentsPDF = function() {
+    if (!residentsList || residentsList.length === 0) {
+        showToast('No residents available to download.', 'error');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    // Use landscape mode for the table to fit better
+    const doc = new jsPDF('landscape');
+
+    // --- Header Background ---
+    doc.setFillColor(30, 58, 138); 
+    doc.rect(0, 0, 297, 30, 'F'); 
+
+    // --- Header Title ---
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("CiviReport", 15, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text("Registered Residents Report", 225, 20);
+
+    // --- Table Content ---
+    const tableHeaders = [["Name", "Email", "Contact", "Gender", "Date Registered", "Date Approved", "Status"]];
+    const tableData = residentsList.map(r => [
+        r.name,
+        r.email,
+        r.contact || 'N/A',
+        r.gender || 'N/A',
+        r.date_registered || 'N/A',
+        r.date_approved || 'N/A',
+        r.status || 'N/A'
+    ]);
+
+    doc.autoTable({
+        head: tableHeaders,
+        body: tableData,
+        startY: 38,
+        theme: 'striped',
+        headStyles: { fillColor: [30, 58, 138] },
+        styles: { fontSize: 9 },
+        margin: { top: 38, left: 15, right: 15 },
+        didDrawPage: function (data) {
+            // Footer
+            const now = new Date();
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 200);
+        }
+    });
+
+    doc.save(`Registered_Residents_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // ===== Download Single Resident PDF =====
+  window.downloadSingleResidentPDF = function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const r = window.currentResident;
+    if (!r) return;
+
+    // --- Header Background ---
+    doc.setFillColor(30, 58, 138); 
+    doc.rect(0, 0, 210, 30, 'F'); 
+
+    // --- Header Title ---
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("CiviReport", 15, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text("Official Resident Profile", 145, 20);
+
+    let y = 45;
+
+    // --- Helper ---
+    const printRow = (label, value) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(120, 120, 120);
+      doc.text(label, 15, y);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(20, 20, 20);
+      // Ensure long text (like addresses) break correctly
+      const lines = doc.splitTextToSize(String(value || 'N/A'), 120);
+      doc.text(lines, 60, y);
+      
+      y += (lines.length * 5) + 5;
+    };
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("RESIDENT INFORMATION", 15, y);
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, y + 3, 195, y + 3);
+    y += 12;
+
+    printRow("Full Name:", r.name);
+    printRow("Status:", r.status);
+    printRow("Email:", r.email);
+    printRow("Contact Number:", r.contact);
+    printRow("Gender:", r.gender);
+    printRow("Date Registered:", r.date_registered);
+    if(r.date_approved) printRow("Date Approved:", r.date_approved);
+    
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("ADDRESS DETAILS", 15, y);
+    doc.line(15, y + 3, 195, y + 3);
+    y += 12;
+    printRow("Full Address:", r.address);
+
+    // --- Footer ---
+    const now = new Date();
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 285);
+
+    doc.save(`Resident_Profile_${r.name.replace(/\s+/g, '_')}.pdf`);
+  };
 });

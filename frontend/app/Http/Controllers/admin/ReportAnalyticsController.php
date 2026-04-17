@@ -19,9 +19,23 @@ class ReportAnalyticsController extends Controller
         $stats      = $this->api->getDashboardStats();
         $complaints = $this->api->getComplaints();
 
-        $byType    = collect($complaints)->groupBy('complaint_type')->map->count();
-        $byStatus  = collect($complaints)->groupBy('complaint_status')->map->count();
+        $collection = collect($complaints);
 
-        return view('pages.ReportAnalytics', compact('stats', 'byType', 'byStatus'));
+        $byType   = $collection->groupBy('complaint_type')->map->count();
+        $byStatus = $collection->groupBy('complaint_status')->map->count();
+
+        // Monthly trend sa isang taon
+        $byMonth = $collection
+            ->filter(fn($c) => isset($c['created_at']) &&
+                substr($c['created_at'], 0, 4) == date('Y'))
+            ->groupBy(fn($c) => (int) substr($c['created_at'], 5, 2))
+            ->map->count();
+
+        $months    = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $trendData = collect(range(1, 12))->map(fn($m) => $byMonth[$m] ?? 0)->values();
+
+        return view('pages.ReportAnalytics', compact(
+            'stats', 'byType', 'byStatus', 'months', 'trendData'
+        ));
     }
 }

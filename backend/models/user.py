@@ -16,3 +16,4 @@ class User(Base):
     is_active = Column(Boolean)
     approved_at = Column(Date)
     status = Column(String(50), default="pending")
+    rejection_reason = Column(String(500))

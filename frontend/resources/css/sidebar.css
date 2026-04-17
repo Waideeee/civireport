@@ -15,38 +15,49 @@
 }
 
 .sidebar-brand {
-  padding: 1.5rem 1.25rem;
+  padding: 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-text {
+  display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  flex: 1;
 }
 
 .brand-name {
   font-size: 1.25rem;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.025em; 
-  margin-left: 2.4rem;
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .brand-sub {
   font-size: 0.65rem;
   color: #93c5fd;
-  letter-spacing: 0.1em; 
-  margin-left: 2.4rem;
+  letter-spacing: 0.1em;
+  margin: 0;
+  line-height: 1.2;
+  gap: 0.5rem;
 }
+
 .system-logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem; 
-  align-items: flex-end;
-    
+  justify-content: center;
 }
 
 .barangay-logo {
-  width: 32px;
-  height: 32px;
+  width: 52px;
+  height: 52px;
   /* filter: brightness(0) invert(1); */
 }
 

@@ -14,9 +14,11 @@ class UserResponse(BaseModel):
     is_active: Optional[bool]
     approved_at: Optional[date]
     status: Optional[str]
+    rejection_reason: Optional[str]
 
     class Config:
         from_attributes = True
 
 class UserStatusUpdate(BaseModel):
     status: str
+    rejection_reason: Optional[str] = None

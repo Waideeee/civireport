@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\FastApiService;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ComplaintController extends Controller
 {
@@ -16,31 +17,49 @@ class ComplaintController extends Controller
     }
 
     public function index()
-{
-    $complaints = $this->api->getComplaints();
-    return view('pages.Complaints', compact('complaints'));
-}
+    {
+        $complaints = $this->api->getComplaints();
+        return view('pages.Complaints', compact('complaints'));
+    }
 
-public function show($id)
-{
-    $complaint = $this->api->getComplaint($id);
-    return view('pages.Complaints.show', compact('complaint'));
-}
+    public function show($id)
+    {
+        $complaint = $this->api->getComplaint($id);
+        return view('pages.Complaints.show', compact('complaint'));
+    }
 
-public function updateStatus(Request $request, $id) { 
-    $request->validate([ 'status' => 'required|in:pending, inprogress, approved, rejected',]);
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,in progress,resolved,rejected',
+        ]);
 
-    $complaint = $this->api->getComplaint($id); //for old status para sa audit log
+        $result = $this->api->updateComplaintStatus($id, $request->status, auth()->id());
 
-    $this->api->updateComplaintStatus($id, $request->status); 
+        // Always return JSON so the frontend AJAX handler can read it
+        if ($result && !isset($result['error'])) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated!'
+            ]);
+        }
 
-    AuditLog::create([
-        'admin-id' => auth() -> id(), 
-        'complaint_id' => $id,
-        'old_status' => $complaint['complaint-status'],
-        'new_status' => $request -> status,
-    ]);
+        return response()->json([
+            'success' => false,
+            'message' => $result['error'] ?? 'Failed to update complaint status.'
+        ], 422);
+    }
 
-    return redirect() ->back() ->with ('success', 'Status updated!');
-}
+    public function downloadComplaint($id)
+    {
+        $complaint = $this->api->getComplaint($id);
+
+        $pdf = Pdf::loadView('pdf.complaint', compact('complaint'))
+            ->setOptions([
+                'isRemoteEnabled' => true, // 🔥 para gumana CSS/images
+                'defaultFont' => 'sans-serif'
+            ]);
+
+        return $pdf->download('complaint_'.$id.'.pdf');
+    }
 }

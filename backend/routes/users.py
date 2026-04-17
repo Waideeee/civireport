@@ -30,6 +30,8 @@ def update_user_status(user_id: int, payload: UserStatusUpdate, db: Session = De
         user.is_active = True
     elif payload.status == "rejected":
         user.is_active = False
+        if payload.rejection_reason:
+            user.rejection_reason = payload.rejection_reason
     db.commit()
     db.refresh(user)
     return {"message": "Status updated", "user_id": user_id, "status": user.status}

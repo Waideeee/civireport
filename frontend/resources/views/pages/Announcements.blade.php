@@ -4,21 +4,30 @@
 
 @vite(['resources/css/app.css', 'resources/css/Announcements.css', 'resources/js/app.js', 'resources/js/Announcements.js'])
 
+@php
+    $total = count($announcements);
+    $today = \Carbon\Carbon::today();
+    $posted = collect($announcements)->filter(fn($a) => \Carbon\Carbon::parse($a['post_date'])->lte($today))->count();
+    $upcoming = collect($announcements)->filter(fn($a) => \Carbon\Carbon::parse($a['event_date'])->gt($today))->count();
+@endphp
+
 <div class="main">
   <div class="content">
 
-    {{-- ── Header ── --}}
+    {{-- Header --}}
     <div class="page-header">
         <div class="page-header-left">
             <h1>Announcements</h1>
             <p>Manage and publish announcements for your organization</p>
         </div>
-        <a href="#modal-create" class="btn-create">
-            Create Announcement
-        </a>
+        <a href="#modal-create" class="btn-create">Create Announcement</a>
     </div>
 
-    {{-- ── Stats ── --}}
+    @if(session('success'))
+        <div class="alert-success">{{ session('success') }}</div>
+    @endif
+
+    {{-- Stats --}}
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-icon blue">
@@ -29,7 +38,7 @@
             </div>
             <div class="stat-info">
                 <p>Total Announcements</p>
-                <h3>0</h3>
+                <h3>{{ $total }}</h3>
             </div>
         </div>
 
@@ -43,7 +52,7 @@
             </div>
             <div class="stat-info">
                 <p>Posted</p>
-                <h3>0</h3>
+                <h3>{{ $posted }}</h3>
             </div>
         </div>
 
@@ -57,26 +66,31 @@
             </div>
             <div class="stat-info">
                 <p>Upcoming</p>
-                <h3>0</h3>
+                <h3>{{ $upcoming }}</h3>
             </div>
         </div>
     </div>
 
-    {{-- ── Cards Grid ── --}}
+    {{-- Cards Grid --}}
     <p class="section-title">All Announcements</p>
     <div class="announcements-grid">
-        <div class="empty-state">
-            <h3>No Announcements Yet</h3>
-            <p>Click "Create Announcement" to post your first one</p>
-        </div>
+        @forelse($announcements as $a)
+            @include('partials.announcement-card', ['a' => $a])
+        @empty
+            <div class="empty-state">
+                <h3>No Announcements Yet</h3>
+                <p>Click "Create Announcement" to post your first one</p>
+            </div>
+        @endforelse
     </div>
 
   </div>
 </div>
 
-{{-- ══════════════════ CREATE MODAL ══════════════════ --}}
+{{-- CREATE MODAL --}}
 <div class="modal-overlay" id="modal-create">
-    <div class="modal">
+    <form action="{{ route('announcements.store') }}" method="POST" class="modal">
+        @csrf
         <div class="modal-header">
             <h2>New Announcement</h2>
             <a href="#" class="modal-close">
@@ -88,41 +102,40 @@
         <div class="modal-body">
             <div class="form-group">
                 <label class="form-label" for="title">Title <span>*</span></label>
-                <input type="text" id="title" name="title" class="form-control" placeholder="e.g. General Assembly Meeting">
+                <input type="text" id="title" name="title" class="form-control" required placeholder="e.g. General Assembly Meeting">
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="post_date">Post Date <span>*</span></label>
-                    <input type="date" id="post_date" name="post_date" class="form-control">
+                    <input type="date" id="post_date" name="post_date" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="event_date">Event Date <span>*</span></label>
-                    <input type="date" id="event_date" name="event_date" class="form-control">
+                    <input type="date" id="event_date" name="event_date" class="form-control" required>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label" for="venue">Venue / Location <span>*</span></label>
-                <input type="text" id="venue" name="venue" class="form-control" placeholder="e.g. Main Hall, Building A">
+                <input type="text" id="venue" name="venue" class="form-control" required placeholder="e.g. Main Hall, Building A">
             </div>
             <div class="form-group">
                 <label class="form-label" for="description">Description <span>*</span></label>
-                <textarea id="description" name="description" class="form-control" placeholder="Write the announcement details here..."></textarea>
+                <textarea id="description" name="description" class="form-control" required placeholder="Write the announcement details here..."></textarea>
             </div>
             <div class="form-group">
-                <label class="form-label" for="attendees">Who Will Attend <span>*</span></label>
-                <input type="text" id="attendees" name="attendees" class="form-control" placeholder="e.g. All Staff, Grade 10, Teachers">
+                <label class="form-label" for="who_will_attend">Who Will Attend <span>*</span></label>
+                <input type="text" id="who_will_attend" name="who_will_attend" class="form-control" required placeholder="e.g. All Staff, Grade 10, Teachers">
             </div>
         </div>
         <div class="modal-footer">
             <a href="#" class="btn-cancel">Cancel</a>
             <button type="submit" class="btn-post">Post Announcement</button>
         </div>
-    </div>
+    </form>
 </div>
-
-{{-- ══════════════════ EDIT MODAL ══════════════════ --}}
+{{-- EDIT MODAL --}}
 <div class="modal-overlay" id="modal-edit">
-    <div class="modal">
+    <form class="modal">
         <div class="modal-header">
             <h2>Edit Announcement</h2>
             <a href="#" class="modal-close">
@@ -133,37 +146,37 @@
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label class="form-label">Title <span>*</span></label>
-                <input type="text" name="title" class="form-control">
+                <label class="form-label" for="edit_title">Title <span>*</span></label>
+                <input type="text" id="edit_title" name="title" class="form-control" required>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Post Date <span>*</span></label>
-                    <input type="date" name="post_date" class="form-control">
+                    <label class="form-label" for="edit_post_date">Post Date <span>*</span></label>
+                    <input type="date" id="edit_post_date" name="post_date" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Event Date <span>*</span></label>
-                    <input type="date" name="event_date" class="form-control">
+                    <label class="form-label" for="edit_event_date">Event Date <span>*</span></label>
+                    <input type="date" id="edit_event_date" name="event_date" class="form-control" required>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Venue / Location <span>*</span></label>
-                <input type="text" name="venue" class="form-control">
+                <label class="form-label" for="edit_venue">Venue / Location <span>*</span></label>
+                <input type="text" id="edit_venue" name="venue" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Description <span>*</span></label>
-                <textarea name="description" class="form-control"></textarea>
+                <label class="form-label" for="edit_description">Description <span>*</span></label>
+                <textarea id="edit_description" name="description" class="form-control" required></textarea>
             </div>
             <div class="form-group">
-                <label class="form-label">Who Will Attend <span>*</span></label>
-                <input type="text" name="attendees" class="form-control">
+                <label class="form-label" for="edit_attendees">Who Will Attend <span>*</span></label>
+                <input type="text" id="edit_attendees" name="attendees" class="form-control" required>
             </div>
         </div>
         <div class="modal-footer">
             <a href="#" class="btn-cancel">Cancel</a>
             <button type="submit" class="btn-post">Save Changes</button>
         </div>
-    </div>
+    </form>
 </div>
 
 @endsection

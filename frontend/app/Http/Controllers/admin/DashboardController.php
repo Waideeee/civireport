@@ -14,10 +14,22 @@ class DashboardController extends Controller
         $this->api = $api;
     }
 
-    public function index() {    
-        $stats = $this->api->getDashboardStats();
-        $recentComplaints = $this->api->getComplaints();
+    public function index()
+    {
+        try {
+            $userStats        = $this->api->getDashboardUserStats();
+            $recentComplaints = $this->api->getComplaints();
+            $pendingUsers     = $this->api->getDashboardPendingUsers();
+            $registeredUsers  = $this->api->getDashboardRegisteredUsers();
+        } catch (\Exception $e) {
+            $userStats        = null;
+            $recentComplaints = [];
+            $pendingUsers     = [];
+            $registeredUsers  = [];
+        }
 
-        return view('pages.dashboard', compact('stats', 'recentComplaints'));
+        return view('pages.dashboard', compact(
+            'userStats', 'recentComplaints', 'pendingUsers', 'registeredUsers'
+        ));
     }
 }

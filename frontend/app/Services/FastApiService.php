@@ -10,66 +10,99 @@ class FastApiService
 
     public function __construct()
     {
-        $this->baseUrl = env('FASTAPI_URL');
+        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
     }
 
-    // Complaints — kunin lahat kasama ang user at media
-    public function getComplaints()
+    protected function client()
     {
-        // GET /complaints
-        // Expected fields: complaint_id, complaint_date, user_id,
-        // complaint_type, complaint_subtype, complaint_location,
-        // complaint_status, additional_notes
-        return Http::get("{$this->baseUrl}/complaints")->json();
+        return Http::timeout(10)->baseUrl($this->baseUrl);
     }
 
-    public function getComplaint($id)
+    public function getDashboardUserStats()
     {
-        // GET /complaints/{id}
-        // Expected: same fields + complaint_media (file_path, media_type)
-        return Http::get("{$this->baseUrl}/complaints/{$id}")->json();
-    }
-
-    public function updateComplaintStatus($id, $status)
-    {
-        // PATCH /complaints/{id}
-        // Payload: complaint_status
-        return Http::patch("{$this->baseUrl}/complaints/{$id}", [
-            'complaint_status' => $status,
-        ])->json();
+        return $this->client()->get('/dashboard/stats')->json();
     }
 
     public function getDashboardStats()
     {
-        // GET /complaints/stats
-        // Expected: count ng bawat status
-        // pending, in_progress, resolved, rejected, total
-        return Http::get("{$this->baseUrl}/complaints/stats")->json();
+        return $this->client()->get('/dashboard/stats')->json();
+    }
+
+    public function getDashboardPendingUsers()
+    {
+        return $this->client()->get('/dashboard/pending-users')->json();
+    }
+
+    public function getDashboardRegisteredUsers()
+    {
+        return $this->client()->get('/dashboard/registered-users')->json();
+    }
+
+    public function getDashboardComplaintStats()
+    {
+        return $this->client()->get('/dashboard/complaint-stats')->json();
+    }
+
+    public function getComplaints()
+    {
+        return $this->client()->get('/complaints')->json();
+    }
+
+    public function getComplaint($id)
+    {
+        return $this->client()->get("/complaints/{$id}")->json();
+    }
+
+    // FIX: added $adminId parameter so audit log is written correctly in FastAPI
+    public function updateComplaintStatus($id, $status, $adminId = null)
+    {
+        return $this->client()->patch("/complaints/{$id}/status", [
+            'complaint_status' => $status,
+            'admin_id'         => $adminId,
+        ])->json();
     }
 
     public function getUsers()
     {
-        // GET /users
-        return Http::get("{$this->baseUrl}/users")->json();
+        return $this->client()->get('/users')->json();
     }
 
     public function getUser($id)
     {
-        // GET /users/{id}
-        return Http::get("{$this->baseUrl}/users/{$id}")->json();
+        return $this->client()->get("/users/{$id}")->json();
     }
 
-    public function updateUserStatus($id, $status)
-{
-    return Http::patch("{$this->baseUrl}/users/{$id}/status", [
-        'status' => $status,
-    ])->json();
-}
-
-    public function chat($message)
+    public function updateUserStatus($id, $payload)
     {
-        return Http::post("{$this->baseUrl}/chat", [
-            'message' => $message,
-        ])->json();
+        return $this->client()->patch("/users/{$id}/status", $payload)->json();
     }
+
+    public function getAuditLogs()
+    {
+        return $this->client()->get('/audit-logs')->json();
+    }
+
+    public function getAnalytics()
+    {
+        return $this->client()->get('/analytics')->json();
+    }
+
+    public function getAnnouncements()
+    {
+        return $this->client()->get('/announcements')->json();
+    }
+
+    public function createAnnouncement($data)
+    {
+        return $this->client()->post('/announcements', $data)->json();
+    }
+
+    public function updateAnnouncement($id, $data)
+    {
+        return $this->client()->put("/announcements/{$id}", $data)->json();
+    }
+    public function deleteAnnouncement($id)
+{
+    return $this->client()->delete("/announcements/{$id}")->json();
+}
 }
