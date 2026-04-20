@@ -1,22 +1,7 @@
-.main-content {
-  margin-left: 15rem !important;
-  min-height: 100vh;
-  box-sizing: border-box;
-  width: calc(100vw - 15rem) !important;
-  max-width: calc(100vw - 15rem) !important;
-}
-
+/* ===== Main Container ===== */
 .main {
   width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin-left: 0 !important;
-}
-
-.main .content {
   padding: 30px 40px;
-  width: 100%;
   box-sizing: border-box;
   font-family: 'Montserrat', sans-serif;
 }
@@ -78,8 +63,11 @@
 .stat-card {
   background: #fff;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px 20px;
   border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .stat-num {
@@ -109,13 +97,24 @@
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
 .chart-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
   margin-bottom: 16px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.chart-container.trend {
+  height: 320px;
 }
 
 .chart-full {

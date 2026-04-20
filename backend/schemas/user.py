@@ -14,6 +14,7 @@ class UserResponse(BaseModel):
     is_active: Optional[bool]
     approved_at: Optional[date]
     status: Optional[str]
+    profile_photo_path: Optional[str] = None
     rejection_reason: Optional[str]
 
     class Config:

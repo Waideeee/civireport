@@ -51,7 +51,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-num" id="stat-approved">0</div>
-          <div class="stat-label">Resolved Complaints</div>
+          <div class="stat-label">Approved Complaints</div>
         </div>
         <div class="stat-card">
           <div class="stat-num" id="stat-rejected">0</div>

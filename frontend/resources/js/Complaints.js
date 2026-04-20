@@ -12,8 +12,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function badgeClass(status) {
-    const map = { 'Pending': 'badge-pending', 'Approved': 'badge-approved', 'Rejected': 'badge-rejected', 'In Progress': 'badge-progress' };
-    return map[status] || '';
+    if (!status) return '';
+    const map = { 'pending': 'badge-pending', 'approved': 'badge-approved', 'rejected': 'badge-rejected', 'in progress': 'badge-progress', 'resolved': 'badge-approved' };
+    return map[status.toLowerCase()] || '';
+  }
+
+  function formatStatus(status) {
+    if (!status) return 'Unknown';
+    return status.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   }
 
   let complaints   = [];
@@ -24,6 +30,62 @@ document.addEventListener('DOMContentLoaded', function () {
   let currentStatus  = "";
   let currentType    = "";
   let currentUrgency = "";
+
+  function getUrgencyValue(u) {
+    if (u === 'Critical') return 4;
+    if (u === 'High') return 3;
+    if (u === 'Medium') return 2;
+    if (u === 'Low') return 1;
+    return 0;
+  }
+
+  function sortQueue(a, b) {
+    const uA = getUrgencyValue(a.urgency);
+    const uB = getUrgencyValue(b.urgency);
+    if (uA !== uB) {
+      return uB - uA; // Descending urgency
+    }
+    const dA = new Date(a.created).getTime();
+    const dB = new Date(b.created).getTime();
+    return dA - dB; // Ascending date (oldest first)
+  }
+
+  function updateQueueBanner() {
+    const pending = complaints.filter(c => c.status.toLowerCase() === 'pending');
+
+    pending.sort(sortQueue);
+
+    const current = pending[0];
+    const next = pending[1];
+
+    const numEl = document.getElementById('queue-number');
+    const statusEl = document.getElementById('queue-status');
+    const nextEl = document.getElementById('queue-next');
+    const updatedEl = document.getElementById('queue-updated');
+
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (current) {
+      numEl.textContent = current.ticket_id;
+      statusEl.textContent = 'Pending';
+      statusEl.style.background = '#fef3c7';
+      statusEl.style.color = '#d97706';
+
+      if (next) {
+        nextEl.innerHTML = `Next in line: <strong>#${next.ticket_id}</strong>`;
+      } else {
+        nextEl.textContent = 'No pending complaints left';
+      }
+      updatedEl.textContent = `Updated: ${nowStr}`;
+    } else {
+      numEl.textContent = '--';
+      statusEl.textContent = 'All Clear';
+      statusEl.style.background = '#dcfce7';
+      statusEl.style.color = '#166534';
+      nextEl.textContent = 'No pending complaints left';
+      updatedEl.textContent = `Updated: ${nowStr}`;
+    }
+  }
 
   // ================= FETCH =================
   function reloadComplaints() {
@@ -45,13 +107,17 @@ document.addEventListener('DOMContentLoaded', function () {
           date:      c.complaint_date     || '',
           created:   c.created_at         || '',
           media:     c.media              || [],
+          rejection_reason: c.rejection_reason || '',
+          resolved_media:   c.resolved_media || '',
+          resolved_notes:   c.resolved_notes || ''
         }));
         filteredData = [...complaints];
         applyFilters();
+        updateQueueBanner();
       })
       .catch(() => {
         const tbody = document.getElementById('reports-tbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Failed to load complaints.</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Failed to load complaints.</td></tr>`;
       });
   }
 
@@ -75,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
         (c.status && c.status.toLowerCase().includes(q)) ||
         (c.urgency && c.urgency.toLowerCase().includes(q)) ||
         (c.contact && c.contact.includes(q))) &&
-        (!currentStatus  || c.status  === currentStatus) &&
+        (!currentStatus  || c.status.toLowerCase()  === currentStatus.toLowerCase()) &&
         (!currentType    || c.type    === currentType) &&
         (!currentUrgency || c.urgency === currentUrgency)
       );
@@ -94,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pageData = filteredData.slice(start, start + ROWS_PER_PAGE);
 
     if (!pageData.length) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No complaints found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No complaints found.</td></tr>`;
       return;
     }
 
@@ -104,11 +170,8 @@ document.addEventListener('DOMContentLoaded', function () {
         <td>${c.type}</td>
         <td>${c.subtype}</td>
         <td>${c.location}</td>
-        <td>📎 <span class="media-link">View</span></td>
-        <td>${c.name}</td>
-        <td>${c.contact}</td>
         <td><span class="urgency-badge ${urgencyBadgeClass(c.urgency)}">${c.urgency}</span></td>
-        <td><span class="badge ${badgeClass(c.status)}">${c.status}</span></td>
+        <td><span class="badge ${badgeClass(c.status)}">${formatStatus(c.status)}</span></td>
       </tr>
     `).join('');
   }
@@ -121,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.currentComplaint = c;
 
     document.getElementById('modal-ticket').textContent  = `Complaint #${c.ticket_id}`;
-    document.getElementById('modal-badge').textContent   = c.status;
+    document.getElementById('modal-badge').textContent   = formatStatus(c.status);
     document.getElementById('modal-badge').className     = `badge ${badgeClass(c.status)}`;
     document.getElementById('md-type').textContent       = c.type;
     document.getElementById('md-subtype').textContent    = c.subtype;
@@ -134,6 +197,49 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('md-urgency').textContent    = c.urgency;
     document.getElementById('md-urgency').className      = `urgency-badge ${urgencyBadgeClass(c.urgency)}`;
     
+    const rejectContainer = document.getElementById('md-reject-container');
+    const rejectReasonEl = document.getElementById('md-reject-reason');
+    if (c.status.toLowerCase() === 'rejected' && c.rejection_reason) {
+        rejectContainer.style.display = 'block';
+        rejectReasonEl.textContent = c.rejection_reason;
+    } else {
+        rejectContainer.style.display = 'none';
+        rejectReasonEl.textContent = '';
+    }
+
+    const resolutionContainer = document.getElementById('md-resolution-container');
+    const resolvedNotesEl = document.getElementById('md-resolved-notes');
+    const resolvedMediaEl = document.getElementById('md-resolved-media');
+    
+    if (c.resolved_notes || c.resolved_media) {
+      resolutionContainer.style.display = 'block';
+      resolvedNotesEl.textContent = c.resolved_notes || 'No resolution notes provided.';
+      if (c.resolved_media) {
+        let path = c.resolved_media;
+        if (!path.startsWith('uploads/')) path = 'uploads/' + path;
+        resolvedMediaEl.innerHTML = `<a href="http://localhost:8001/${path}" target="_blank" style="display:inline-block; padding: 4px 12px; background: #dcfce7; color: #166534; border-radius: 6px; font-size: 0.75rem; text-decoration: none; font-weight: 600;">📎 View Resolution Proof</a>`;
+      } else {
+        resolvedMediaEl.innerHTML = '<span style="font-size: 0.75rem; color: #9ca3af; font-style: italic;">No media attached</span>';
+      }
+    } else {
+      resolutionContainer.style.display = 'none';
+    }
+
+    // Toggle footer buttons based on status
+    const btnApprove = document.getElementById('btn-approve');
+    const btnReject = document.getElementById('btn-reject');
+    
+    if (c.status.toLowerCase() === 'pending') {
+      btnApprove.style.display = 'inline-block';
+      btnReject.style.display = 'inline-block';
+    } else if (c.status.toLowerCase() === 'in progress') {
+      btnApprove.style.display = 'none';
+      btnReject.style.display = 'inline-block';
+    } else {
+      btnApprove.style.display = 'none';
+      btnReject.style.display = 'none';
+    }
+
     const mediaContainer = document.getElementById('md-media-link');
     if (c.media && c.media.length > 0) {
       mediaContainer.innerHTML = c.media.map(m => {
@@ -141,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // If the path already includes 'uploads/', we just append it, else we prepend it.
         let path = m.file_path;
         if (!path.startsWith('uploads/')) path = 'uploads/' + path;
-        return `<a href="http://localhost:8000/${path}" target="_blank" style="display:block; margin-bottom:4px; color:#1d4ed8; text-decoration:underline;">📎 View ${m.media_type || 'Media'}</a>`;
+        return `<a href="http://localhost:8001/${path}" target="_blank" style="display:block; margin-bottom:4px; color:#1d4ed8; text-decoration:underline;">📎 View ${m.media_type || 'Media'}</a>`;
       }).join('');
     } else {
       mediaContainer.innerHTML = '<span style="color:#6b7280; font-style:italic;">No media attached</span>';
@@ -159,6 +265,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const c = window.currentComplaint;
     if (!c) return;
     document.getElementById('approve-complaint-id').textContent = `#${c.id}`;
+    document.getElementById('complaint-action-notes').value = '';
+    document.getElementById('complaint-action-proof').value = '';
+    document.getElementById('complaint-action-error').style.display = 'none';
     document.getElementById('complaint-approve-overlay').classList.add('active');
   };
 
@@ -167,13 +276,45 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   window.submitComplaintApprove = async function () {
+    const notes = document.getElementById('complaint-action-notes').value.trim();
+    const errorEl = document.getElementById('complaint-action-error');
+    
+    if (!notes) {
+      errorEl.style.display = 'block';
+      return;
+    }
+    errorEl.style.display = 'none';
+
     const c = window.currentComplaint;
     if (!c) return;
 
     const btn = document.getElementById('complaint-approve-btn');
     btn.disabled = true;
 
+    const fileInput = document.getElementById('complaint-action-proof');
+    let mediaBase64 = null;
+    let mediaName = null;
+
+    if (fileInput.files && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      mediaName = file.name;
+      
+      mediaBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
     try {
+      const payload = { 
+        status: 'in progress',
+        resolved_notes: notes,
+        action_proof: mediaBase64,
+        action_proof_name: mediaName
+      };
+
       const res = await fetch(`/Complaints/${c.id}/status`, {
         method: 'POST',
         headers: {
@@ -181,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
           'X-HTTP-Method-Override': 'PATCH',
         },
-        body: JSON.stringify({ status: 'in progress' }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -189,9 +330,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (res.ok && data.success) {
         closeComplaintApproveModal();
         closeModalDirect();
-        showCrToast('Complaint approved.', 'success');
+        showCrToast('Complaint approved with resolution details.', 'success');
         reloadComplaints();
       }
+    } catch (err) {
+      console.error(err);
+      showCrToast('Failed to process approval.', 'error');
     } finally {
       btn.disabled = false;
     }
@@ -243,11 +387,11 @@ window.downloadComplaint = function () {
 
   // --- Header Title ---
   doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(22);
   doc.text("CiviReport", 15, 20);
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont("times", "normal");
   doc.setFontSize(12);
   doc.text("Official Complaint Record", 145, 20);
 
@@ -256,7 +400,7 @@ window.downloadComplaint = function () {
   // --- Helper to draw section headers ---
   const drawSection = (title) => {
     doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("times", "bold");
     doc.setFontSize(14);
     doc.text(title.toUpperCase(), 15, y);
     doc.setLineWidth(0.5);
@@ -268,12 +412,12 @@ window.downloadComplaint = function () {
   // --- Helper to draw key-value rows ---
   const printRow = (label, value, yPos, isRightCol = false) => {
     const x = isRightCol ? 110 : 15;
-    doc.setFont("helvetica", "bold");
+    doc.setFont("times", "bold");
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
     doc.text(label, x, yPos);
     
-    doc.setFont("helvetica", "normal");
+    doc.setFont("times", "normal");
     doc.setTextColor(20, 20, 20);
     doc.text(String(value || 'N/A'), x + 28, yPos);
   };
@@ -312,7 +456,7 @@ window.downloadComplaint = function () {
   doc.setLineWidth(0.5);
   doc.rect(15, y, 180, 50, 'FD'); 
   
-  doc.setFont("helvetica", "normal");
+  doc.setFont("times", "normal");
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
   
@@ -339,4 +483,14 @@ window.downloadComplaint = function () {
     setTimeout(() => toast.remove(), 3000);
   }
 
+  // Filter Bindings
+  document.getElementById('cr-filter-status')?.addEventListener('change', function () {
+    currentStatus = this.value;
+    applyFilters();
+  });
+  
+  document.getElementById('cr-search')?.addEventListener('input', function () {
+    currentSearch = this.value;
+    applyFilters();
+  });
 });

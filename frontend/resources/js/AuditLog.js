@@ -13,14 +13,37 @@ function escapeHtml(str) {
 }
 
 function statusBadge(status) {
+  if (!status) return `<span class="audit-badge badge-pending">Unknown</span>`;
+
+  let baseStatus = status;
+  let extraText = "";
+  if (status.includes(" (")) {
+    const parts = status.split(" (");
+    baseStatus = parts[0];
+    extraText = " (" + parts[1];
+  }
+
   const map = {
     "Pending":     "badge-pending",
     "In Progress": "badge-inprogress",
+    "in progress": "badge-inprogress",
     "Approved":    "badge-approved",
     "Rejected":    "badge-rejected",
+    "Resolved":    "badge-approved"
   };
-  const cls = map[status] || "badge-pending";
-  return `<span class="audit-badge ${cls}">${escapeHtml(status)}</span>`;
+  
+  // Try exact match first, or case-insensitive fallback
+  let cls = map[baseStatus];
+  if (!cls) {
+    const key = Object.keys(map).find(k => k.toLowerCase() === baseStatus.toLowerCase());
+    cls = key ? map[key] : "badge-pending";
+  }
+
+  let html = `<span class="audit-badge ${cls}">${escapeHtml(baseStatus)}</span>`;
+  if (extraText) {
+    html += `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; font-weight: 500;">${escapeHtml(extraText)}</div>`;
+  }
+  return html;
 }
 
 function sortData(data) {

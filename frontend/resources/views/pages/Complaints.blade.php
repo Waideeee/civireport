@@ -78,9 +78,6 @@
                 <th>COMPLAINT TYPE</th>
                 <th>SPECIFIC COMPLAINT</th>
                 <th>LOCATION</th>
-                <th>MEDIA</th>
-                <th>RESIDENT</th>
-                <th>CONTACT</th>
                 <th>URGENCY</th>
                 <th>STATUS</th>
               </tr>
@@ -134,6 +131,21 @@
             <label>Additional Notes</label>
             <p id="md-notes" class="modal-notes-box"></p>
           </div>
+          <div class="modal-field" id="md-reject-container" style="display: none;">
+            <label style="color:#ef4444;">Reason for Rejection</label>
+            <p id="md-reject-reason" class="modal-notes-box" style="background:#fef2f2; border-color:#fee2e2; color:#991b1b;"></p>
+          </div>
+          <div class="modal-field" id="md-resolution-container" style="display: none; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <label style="color:#16a34a; font-weight: 700; font-size: 0.8rem; margin:0;">Resolution</label>
+            </div>
+            <p id="md-resolved-notes" style="font-size: 0.85rem; color: #166534; margin-bottom: 10px;"></p>
+            <div id="md-resolved-media"></div>
+          </div>
           <div class="modal-field">
             <label>Complaint Media</label>
             <div class="modal-media" id="md-media-link"></div>
@@ -167,9 +179,8 @@
       {{-- Download: calls downloadComplaint() which uses currentComplaint data --}}
       <button class="btn btn-download" onclick="downloadComplaint()">⬇ Download</button>
       {{-- Reject: opens reject confirmation modal --}}
-      <button class="btn btn-danger" onclick="showComplaintRejectModal()">Reject</button>
-      {{-- Approve: opens approve confirmation modal --}}
-      <button class="btn btn-success" onclick="showComplaintApproveModal()">Approve</button>
+      <button class="btn btn-danger" id="btn-reject" onclick="showComplaintRejectModal()">Reject</button>
+      <button class="btn btn-success" id="btn-approve" onclick="showComplaintApproveModal()">Approve</button>
     </div>
   </div>
 </div>
@@ -190,6 +201,28 @@
       Are you sure you want to approve complaint
       <strong id="approve-complaint-id"></strong>?
       The status will be updated to <em>In Progress</em>.
+    </div>
+
+    <div class="cr-confirm-field" style="margin-top: 12px; text-align: left;">
+      <label class="cr-confirm-label" for="complaint-action-notes">
+        Resolution Notes <span class="cr-confirm-required">*</span>
+      </label>
+      <textarea
+        id="complaint-action-notes"
+        class="cr-confirm-textarea"
+        placeholder="Detail how this complaint will be or was resolved..."
+        rows="3"
+      ></textarea>
+      <div class="cr-confirm-error" id="complaint-action-error" style="display:none; color:red; font-size:0.8rem; margin-top:4px;">
+        Please provide resolution notes.
+      </div>
+    </div>
+
+    <div class="cr-confirm-field" style="margin-top: 12px; text-align: left;">
+      <label class="cr-confirm-label" for="complaint-action-proof">
+        Attach Photo Proof <span style="font-weight: normal; color: #9ca3af;">(Optional)</span>
+      </label>
+      <input type="file" id="complaint-action-proof" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.85rem;" />
     </div>
     <div class="cr-confirm-actions">
       <button class="cr-btn cr-btn-ghost" onclick="closeComplaintApproveModal()">Cancel</button>

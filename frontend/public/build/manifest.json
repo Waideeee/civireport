@@ -18,7 +18,7 @@
     ]
   },
   "resources/css/ReportAnalytics.css": {
-    "file": "assets/ReportAnalytics-CaQXOI7n.css",
+    "file": "assets/ReportAnalytics-CGilQA__.css",
     "src": "resources/css/ReportAnalytics.css",
     "isEntry": true,
     "name": "ReportAnalytics",
@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/UserRecords.css": {
-    "file": "assets/UserRecords-CsifgPl9.css",
+    "file": "assets/UserRecords-H-wlkLUC.css",
     "src": "resources/css/UserRecords.css",
     "isEntry": true,
     "name": "UserRecords",
@@ -36,7 +36,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bfjf76WE.css",
+    "file": "assets/app-Vub8pY7H.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -45,7 +45,7 @@
     ]
   },
   "resources/css/dashboard.css": {
-    "file": "assets/dashboard-RYSenckX.css",
+    "file": "assets/dashboard-D6XfHMGq.css",
     "src": "resources/css/dashboard.css",
     "isEntry": true,
     "name": "dashboard",
@@ -54,25 +54,25 @@
     ]
   },
   "resources/js/Complaints.js": {
-    "file": "assets/Complaints-CtovvuJX.js",
+    "file": "assets/Complaints-O1S6bg6n.js",
     "name": "Complaints",
     "src": "resources/js/Complaints.js",
     "isEntry": true
   },
   "resources/js/ReportAnalytics.js": {
-    "file": "assets/ReportAnalytics-GNjU4M3e.js",
+    "file": "assets/ReportAnalytics-D1ISD8On.js",
     "name": "ReportAnalytics",
     "src": "resources/js/ReportAnalytics.js",
     "isEntry": true
   },
   "resources/js/UserRecords.js": {
-    "file": "assets/UserRecords-BI3qw03v.js",
+    "file": "assets/UserRecords-B1Tuy0-l.js",
     "name": "UserRecords",
     "src": "resources/js/UserRecords.js",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-6Zj8tT-U.js",
+    "file": "assets/app-Du-R-tma.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,

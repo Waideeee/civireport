@@ -15,5 +15,8 @@ class Complaint(Base):
     complaint_status   = Column(String(255))
     urgency_level      = Column(String(50))
     created_at         = Column(TIMESTAMP)
+    rejection_reason   = Column(Text)
+    resolved_media     = Column(String(255))
+    resolved_notes     = Column(Text)
 
     complaint_media    = relationship("Complaint_media", back_populates="complaint")

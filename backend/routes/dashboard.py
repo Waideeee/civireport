@@ -28,14 +28,14 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
 def get_complaint_stats(db: Session = Depends(get_db)):
     pending     = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "pending").scalar()
     in_progress = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "in progress").scalar()
-    resolved    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "resolved").scalar()
+    approved    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "approved").scalar()
     rejected    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "rejected").scalar()
     total       = db.query(func.count(Complaint.complaint_id)).scalar()
 
     return {
         "pending":     pending,
         "in_progress": in_progress,
-        "resolved":    resolved,
+        "approved":    approved,
         "rejected":    rejected,
         "total":       total,
     }

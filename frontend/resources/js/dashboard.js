@@ -40,7 +40,7 @@ window.addEventListener('load', function () {
     .then(data => {
       animateCount('stat-pending',    data.pending     || 0);
       animateCount('stat-inprogress', data.in_progress || 0);
-      animateCount('stat-approved',   data.resolved    || 0);
+      animateCount('stat-approved',   data.approved    || 0);
       animateCount('stat-rejected',   data.rejected    || 0);
       animateCount('stat-total',      data.total       || 0);
     })
@@ -124,6 +124,38 @@ window.addEventListener('load', function () {
           '<td><span class="' + getBadgeClass(u.status) + '">' + u.status + '</span></td>';
         tbody.appendChild(tr);
       });
+    });
+
+  // ── Recent Activity (Audit Logs) ─────────────────────────
+  fetch('/api/audit-logs')
+    .then(r => r.json())
+    .then(logs => {
+      var container = document.getElementById('audit-quick-view');
+      if (!container) return;
+      if (!logs.length) {
+        container.innerHTML = '<div class="empty-state" style="padding: 20px; text-align: center; color: #6b7280;">No recent activity</div>';
+        return;
+      }
+      var latest = logs.slice(0, 5);
+      var html = '<table class="cr-table">' +
+                 '<thead><tr><th>Date</th><th>Admin</th><th>Complaint ID</th><th>Action</th></tr></thead>' +
+                 '<tbody>';
+      latest.forEach(function (log) {
+        var idStr = String(log.complaint_id).padStart(3, '0');
+        var d = log.audit_date ? new Date(log.audit_date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'N/A';
+        html += '<tr>' +
+                  '<td>' + d + '</td>' +
+                  '<td>' + (log.admin_name || 'System') + '</td>' +
+                  '<td><strong>#' + idStr + '</strong></td>' +
+                  '<td><span style="color: #6b7280;">Status: </span><span style="font-weight:600; color: #374151;">' + log.old_status + '</span> &rarr; <span style="font-weight:600; color: #3b82f6;">' + log.new_status + '</span></td>' +
+                '</tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    })
+    .catch(() => {
+      var container = document.getElementById('audit-quick-view');
+      if (container) container.innerHTML = '<div class="empty-state" style="padding: 20px; text-align: center; color: #6b7280;">Failed to load recent activity</div>';
     });
 
   // ── Approve / Reject handlers ────────────────────────────

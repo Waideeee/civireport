@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  const fontFamily = "'Inter', 'Helvetica Neue', sans-serif";
+  const fontFamily = "'Montserrat', sans-serif";
   Chart.defaults.font.family = fontFamily;
   Chart.defaults.font.size   = 12;
   Chart.defaults.color       = '#6b7280';
@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
       options: {
         indexAxis: 'y',
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} complaints` } },
@@ -131,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         cutout: '65%',
         plugins: {
           legend: {
@@ -177,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} reports` } },
@@ -240,18 +243,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function drawHeader() {
       doc.setFillColor(26, 54, 126);
       doc.rect(0, 0, pageW, 68, 'F');
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.setFontSize(22);
       doc.setTextColor(255, 255, 255);
       doc.text('CiviReport', margin, 43);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.setFontSize(11);
       doc.text('Complaint Analytics Report', pageW - margin, 43, { align: 'right' });
     }
 
     function sectionHeading(label) {
       checkPage(50);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(17, 24, 39);
       doc.text(label, margin, y);
@@ -264,11 +267,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function row(label, value) {
       checkPage(22);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(107, 114, 128);
       doc.text(label, margin, y);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.setTextColor(17, 24, 39);
       doc.text(String(value), col2, y);
       y += 20;
@@ -282,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
       checkPage(rowH + 10);
       doc.setFillColor(26, 54, 126);
       doc.rect(margin, y - 14, tableW, rowH, 'F');
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold');
       doc.setFontSize(9.5);
       doc.setTextColor(255, 255, 255);
       x = margin;
@@ -296,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
         checkPage(rowH);
         doc.setFillColor(ri % 2 === 0 ? 249 : 255, ri % 2 === 0 ? 250 : 255, ri % 2 === 0 ? 251 : 255);
         doc.rect(margin, y - 14, tableW, rowH, 'F');
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('times', 'normal');
         doc.setFontSize(9.5);
         doc.setTextColor(31, 41, 55);
         x = margin;
@@ -314,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
     drawHeader();
     y = 92;
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(107, 114, 128);
     doc.text(`Generated on: ${now}`, margin, y);
@@ -356,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       doc.setPage(p);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(156, 163, 175);
       doc.text(

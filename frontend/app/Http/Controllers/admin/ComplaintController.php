@@ -32,9 +32,21 @@ class ComplaintController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,in progress,resolved,rejected',
+            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
+            'action_proof' => 'nullable|string',
+            'action_proof_name' => 'nullable|string',
+            'resolved_notes' => 'nullable|string',
         ]);
 
-        $result = $this->api->updateComplaintStatus($id, $request->status, auth()->id());
+        $result = $this->api->updateComplaintStatus(
+            $id, 
+            $request->status, 
+            auth()->id(), 
+            $request->rejection_reason,
+            $request->action_proof,
+            $request->action_proof_name,
+            $request->resolved_notes
+        );
 
         // Always return JSON so the frontend AJAX handler can read it
         if ($result && !isset($result['error'])) {

@@ -54,12 +54,27 @@ class FastApiService
     }
 
     // FIX: added $adminId parameter so audit log is written correctly in FastAPI
-    public function updateComplaintStatus($id, $status, $adminId = null)
+    public function updateComplaintStatus($complaintId, $status, $adminId, $rejectionReason = null, $actionProof = null, $actionProofName = null, $resolvedNotes = null)
     {
-        return $this->client()->patch("/complaints/{$id}/status", [
+        $payload = [
             'complaint_status' => $status,
             'admin_id'         => $adminId,
-        ])->json();
+        ];
+
+        if ($rejectionReason !== null) {
+            $payload['rejection_reason'] = $rejectionReason;
+        }
+
+        if ($actionProof !== null) {
+            $payload['action_proof'] = $actionProof;
+            $payload['action_proof_name'] = $actionProofName;
+        }
+
+        if ($resolvedNotes !== null) {
+            $payload['resolved_notes'] = $resolvedNotes;
+        }
+
+        return $this->client()->patch("/complaints/{$complaintId}/status", $payload)->json();
     }
 
     public function getUsers()

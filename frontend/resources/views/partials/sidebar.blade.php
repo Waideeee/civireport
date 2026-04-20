@@ -26,11 +26,38 @@
     <a @class(['nav-item', 'active' => request()->routeIs('AuditLog')]) href="{{ route('AuditLog') }}">Audit Log</a>
 
     <p class="sidebar-section-label">ANALYTICS</p>
-    <a @class(['nav-item', 'active' => request()->routeIs('ReportAnalytics')]) href="{{ route('ReportAnalytics') }}">Reports Analytics</a>
+    <a @class(['nav-item', 'active' => request()->routeIs('ReportAnalytics')]) href="{{ route('ReportAnalytics') }}">Report Analytics</a>
   </div>
 
   <div class="sidebar-footer">
-    <span class="sidebar-username">Admin</span>
-    <button class="btn btn-logout">Logout</button>
+    <div class="sidebar-user-profile" onclick="window.location.href='{{ route('profile.show') }}'">
+        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+            <img class="profile-photo" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+        @else
+            <div class="profile-initial">
+                @php
+                    $name = Auth::user()->name ?? 'Admin';
+                    $words = explode(' ', $name);
+                    $initials = count($words) > 1 ? substr($words[0], 0, 1) . substr($words[1], 0, 1) : substr($name, 0, 2);
+                @endphp
+                {{ strtoupper($initials) }}
+            </div>
+        @endif
+        <div class="profile-details">
+            <span class="sidebar-username">{{ Auth::user()->name ?? 'Admin' }}</span>
+            <span class="sidebar-role">Administrator</span>
+        </div>
+    </div>
+    
+    <form method="POST" action="{{ route('logout') }}" class="logout-form">
+        @csrf
+        <button type="submit" class="btn-icon-logout" title="Logout">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+        </button>
+    </form>
   </div>
 </div>

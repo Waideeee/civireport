@@ -162,6 +162,18 @@ tr:hover td {
   border-bottom: 1px solid #f3f4f6;
 }
 
+.ur-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ur-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .ur-search-wrapper {
   position: relative;
   display: inline-flex;
@@ -192,10 +204,47 @@ tr:hover td {
   box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
 }
 
+.ur-select {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  color: #374151;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ur-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
 .ur-count {
   font-size: 0.78rem;
   color: #9ca3af;
   white-space: nowrap;
+}
+
+/* ===== Download Button ===== */
+.ur-btn-download {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ur-btn-download:hover {
+  background: #f9fafb;
 }
 
 /* ===== Responsive ===== */
@@ -242,6 +291,10 @@ tr:hover td {
   animation: ur-modal-in 0.2s ease;
   text-align: center;
 }
+.ur-modal--wide {
+  max-width: 500px;
+  text-align: left;
+}
 @keyframes ur-modal-in {
   from { opacity: 0; transform: scale(0.94) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -263,6 +316,14 @@ tr:hover td {
   color: #111827;
   margin-bottom: 8px;
 }
+.ur-modal-title--sm {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+.ur-modal-subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
 .ur-modal-message {
   font-size: 0.9rem;
   color: #6b7280;
@@ -274,12 +335,25 @@ tr:hover td {
   text-align: left;
   margin-bottom: 16px;
 }
+.ur-modal-field--full {
+  grid-column: 1 / -1;
+}
 .ur-modal-label {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 6px;
+}
+.ur-modal-label--meta {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+.ur-modal-label--danger {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #ef4444;
 }
 .ur-modal-required { color: #dc2626; }
 .ur-modal-textarea {
@@ -300,6 +374,7 @@ tr:hover td {
   box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
 }
 .ur-modal-error {
+  display: none;
   font-size: 0.78rem;
   color: #dc2626;
   margin-top: 4px;
@@ -310,6 +385,96 @@ tr:hover td {
   justify-content: flex-end;
   margin-top: 8px;
 }
+
+/* ===== Modal Header ===== */
+.ur-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.ur-modal-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ur-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #9ca3af;
+  line-height: 1;
+  padding: 0;
+}
+.ur-modal-close:hover {
+  color: #6b7280;
+}
+
+/* ===== Modal Grid ===== */
+.ur-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ===== Modal Values ===== */
+.ur-modal-value {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+}
+.ur-modal-value--bare {
+  margin: 0;
+}
+.ur-modal-value--break {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  word-break: break-all;
+}
+.ur-modal-value--box {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+.ur-modal-value--danger {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #991b1b;
+  padding: 10px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fee2e2;
+}
+
+/* ===== Resident reject container hidden by default ===== */
+#res-reject-container {
+  display: none;
+}
+
+/* ===== Spinner text hidden by default ===== */
+.ur-spinner-text {
+  display: none;
+}
+
+/* ===== Res Status Badge ===== */
+#res-status {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ===== Modal Buttons ===== */
 .ur-btn {
   padding: 9px 20px;
   border-radius: 8px;

@@ -15,6 +15,7 @@ use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -63,6 +64,16 @@ class FortifyServiceProvider extends ServiceProvider
                 public function toResponse($request) {
                     return $request->wantsJson()
                         ? response()->json(['two_factor' => false])
+                        : redirect('/dashboard');
+                }
+            };
+        });
+
+        $this->app->singleton(TwoFactorLoginResponse::class, function () {
+            return new class implements TwoFactorLoginResponse {
+                public function toResponse($request) {
+                    return $request->wantsJson()
+                        ? response()->json([], 204)
                         : redirect('/dashboard');
                 }
             };

@@ -11,6 +11,7 @@ class User(Base):
     contact_num = Column(String(255))
     address = Column(String(500))
     password = Column(String(255))
+    profile_photo_path = Column(String(2048))
     date_registered = Column(Date)
     role = Column(String(255))
     is_active = Column(Boolean)

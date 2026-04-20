@@ -19,6 +19,7 @@
     
 ])
 
+    @livewireStyles
     @stack('styles')
 </head>
 <body>
@@ -28,9 +29,11 @@
 
         <div class="main-content">
             @yield('content')
+            {{ $slot ?? '' }}
         </div>
     </div>
 
+    @livewireScripts
     @stack('scripts')
 
 </body>
