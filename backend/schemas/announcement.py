@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Literal
 from datetime import date
 
 class AnnouncementBase(BaseModel):
     title: str
+    category: Literal['Community', 'Health', 'Education', 'Culture']
     post_date: date
     event_date: date
     venue: str

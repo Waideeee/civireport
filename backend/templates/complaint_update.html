@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Complaint Resolved</title>
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    "
+  >
+    <div
+      style="
+        max-width: 640px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      "
+    >
+      <div style="background: #16a34a; color: #fff; padding: 24px">
+        <h1 style="margin: 0; font-size: 1.4rem">✅ Complaint Resolved</h1>
+        <p style="margin: 6px 0 0; font-size: 0.9rem; opacity: 0.95">
+          CiviReport Official Notice
+        </p>
+      </div>
+
+      <div style="padding: 24px; color: #111827">
+        <p style="font-size: 0.95rem">
+          Hello <strong>{{ user_name }}</strong>,
+        </p>
+        <p style="font-size: 0.9rem; line-height: 1.6">
+          Your complaint <strong>{{ complaint_id }}</strong> —
+          <em>{{ complaint_title }}</em> has been marked as
+          <strong style="color: #16a34a">Resolved</strong>.
+        </p>
+
+        <h3
+          style="
+            margin: 20px 0 10px;
+            font-size: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 6px;
+          "
+        >
+          Full Action History
+        </h3>
+
+        {% for action in action_history %}
+        <div
+          style="
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #f9fafb;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+            "
+          >
+            <strong style="color: #1e40af"
+              >Action #{{ action.action_number }}</strong
+            >
+            <span style="font-size: 0.78rem; color: #6b7280"
+              >{{ action.created_at }}</span
+            >
+          </div>
+
+          <p style="margin: 4px 0; font-size: 0.85rem">
+            <strong>Resolution Notes:</strong><br />
+            {{ action.resolution_notes or "No notes provided." }}
+          </p>
+
+          {% if action.resolution_media %}
+          <p style="margin: 6px 0; font-size: 0.8rem; color: #6b7280">
+            📎 Proof attached: {{ action.resolution_media }}
+          </p>
+          {% endif %} {% if action.user_response %}
+          <p style="margin: 6px 0; font-size: 0.82rem">
+            <strong>Your Response:</strong>
+            {% if action.user_response == 'satisfied' %}
+            <span style="color: #16a34a; font-weight: 600">✔ Satisfied</span>
+            {% else %}
+            <span style="color: #dc2626; font-weight: 600"
+              >✖ Not Satisfied</span
+            >
+            {% endif %}
+          </p>
+          {% endif %} {% if action.revision_feedback %}
+          <p
+            style="
+              margin: 6px 0;
+              font-size: 0.82rem;
+              background: #fef2f2;
+              padding: 8px;
+              border-radius: 6px;
+              color: #991b1b;
+            "
+          >
+            <strong>Your Feedback:</strong> {{ action.revision_feedback }}
+          </p>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <div
+          style="
+            background: #dcfce7;
+            border-left: 4px solid #16a34a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 16px;
+          "
+        >
+          <p style="margin: 0; font-size: 0.88rem; color: #166534">
+            Thank you for your patience and cooperation. Your feedback helps us
+            serve the community better.
+          </p>
+        </div>
+      </div>
+
+      <div
+        style="
+          background: #f9fafb;
+          padding: 14px 24px;
+          text-align: center;
+          font-size: 0.75rem;
+          color: #9ca3af;
+        "
+      >
+        This is an automated message from CiviReport. Please do not reply.
+      </div>
+    </div>
+  </body>
+</html>

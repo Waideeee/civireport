@@ -1,21 +1,18 @@
 <?php
-
 namespace App\Services;
-
 use Illuminate\Support\Facades\Http;
-
 class FastApiService
 {
     protected $baseUrl;
 
     public function __construct()
     {
-        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
+        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8001');
     }
 
-    protected function client()
+    protected function client($timeout = 10)
     {
-        return Http::timeout(10)->baseUrl($this->baseUrl);
+        return Http::timeout($timeout)->baseUrl($this->baseUrl);
     }
 
     public function getDashboardUserStats()
@@ -53,28 +50,16 @@ class FastApiService
         return $this->client()->get("/complaints/{$id}")->json();
     }
 
-    // FIX: added $adminId parameter so audit log is written correctly in FastAPI
-    public function updateComplaintStatus($complaintId, $status, $adminId, $rejectionReason = null, $actionProof = null, $actionProofName = null, $resolvedNotes = null)
+    public function updateComplaintStatus($id, $status, $adminId = null, $rejectionReason = null, $actionProof = null, $actionProofName = null, $resolvedNotes = null)
     {
-        $payload = [
-            'complaint_status' => $status,
-            'admin_id'         => $adminId,
-        ];
-
-        if ($rejectionReason !== null) {
-            $payload['rejection_reason'] = $rejectionReason;
-        }
-
-        if ($actionProof !== null) {
-            $payload['action_proof'] = $actionProof;
-            $payload['action_proof_name'] = $actionProofName;
-        }
-
-        if ($resolvedNotes !== null) {
-            $payload['resolved_notes'] = $resolvedNotes;
-        }
-
-        return $this->client()->patch("/complaints/{$complaintId}/status", $payload)->json();
+        return $this->client()->patch("/complaints/{$id}/status", [
+            'complaint_status'  => $status,
+            'admin_id'          => $adminId,
+            'rejection_reason'  => $rejectionReason,
+            'action_proof'      => $actionProof,
+            'action_proof_name' => $actionProofName,
+            'resolved_notes'    => $resolvedNotes,
+        ])->json();
     }
 
     public function getUsers()
@@ -102,6 +87,11 @@ class FastApiService
         return $this->client()->get('/analytics')->json();
     }
 
+    public function getAnalyticsInsight()
+    {
+        return $this->client(30)->get('/analytics/insight')->json();
+    }
+
     public function getAnnouncements()
     {
         return $this->client()->get('/announcements')->json();
@@ -116,8 +106,44 @@ class FastApiService
     {
         return $this->client()->put("/announcements/{$id}", $data)->json();
     }
+
     public function deleteAnnouncement($id)
-{
-    return $this->client()->delete("/announcements/{$id}")->json();
-}
+    {
+        return $this->client()->delete("/announcements/{$id}")->json();
+    }
+
+    public function getEmergencies()
+    {
+        return $this->client()->get('/emergencies/')->json();
+    }
+
+    public function getPendingEmergencies()
+    {
+        return $this->client()->get('/emergencies/pending')->json();
+    }
+
+    public function updateEmergencyStatus($id, $payload)
+    {
+        return $this->client()->patch("/emergencies/{$id}/status", $payload)->json();
+    }
+
+    public function getLatestComplaintNotification()
+    {
+        return $this->client()->get('/notifications/complaints/latest')->json();
+    }
+
+    public function getLatestUserNotification()
+    {
+        return $this->client()->get('/notifications/users/latest')->json();
+    }
+
+    public function markComplaintNotified($id)
+    {
+        return $this->client()->patch("/notifications/complaints/{$id}/notified")->json();
+    }
+
+    public function markUserNotified($id)
+    {
+        return $this->client()->patch("/notifications/users/{$id}/notified")->json();
+    }
 }

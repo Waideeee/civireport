@@ -14,12 +14,12 @@
     <div class="topbar-right">
       <div class="topbar-date" id="topbar-date"></div>
       <div class="notif-wrapper">
-        <button class="notif-btn" id="notif-btn" onclick="var d = document.getElementById('notif-dropdown');d.classList.contains('open') ? d.classList.remove('open') : d.classList.add('open');">
+        <button class="notif-btn" id="notif-btn">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          <span class="notif-badge" id="notif-count">0</span>
+          <span class="notif-badge" id="notif-count" style="display:none;">0</span>
         </button>
         <div class="notif-dropdown" id="notif-dropdown">
           <div class="notif-header">

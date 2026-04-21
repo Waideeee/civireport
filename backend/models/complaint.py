@@ -18,5 +18,7 @@ class Complaint(Base):
     rejection_reason   = Column(Text)
     resolved_media     = Column(String(255))
     resolved_notes     = Column(Text)
+    notified_at        = Column(TIMESTAMP, nullable=True)
+    ai_recommendation  = Column(Text, nullable=True)
 
     complaint_media    = relationship("Complaint_media", back_populates="complaint")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models.complaint import Complaint
@@ -9,6 +9,8 @@ from datetime import datetime
 import base64
 import os
 import time
+from schemas.complaint import ComplaintCreate
+from mailer import send_complaint_update_email
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
@@ -38,7 +40,8 @@ def complaint_to_dict(c, u):
         "contact_num":        u.contact_num,
         "media":              media_list,
         "resolved_media":     getattr(c, "resolved_media", ""),
-        "resolved_notes":     getattr(c, "resolved_notes", "")
+        "resolved_notes":     getattr(c, "resolved_notes", ""),
+        "ai_recommendation":  getattr(c, "ai_recommendation", "")
     }
 
 @router.get("/")
@@ -65,8 +68,27 @@ def get_complaint(complaint_id: int, db: Session = Depends(get_db)):
     c, u = result
     return complaint_to_dict(c, u)
 
+@router.post("/")
+def create_complaint(payload: ComplaintCreate, db: Session = Depends(get_db)):
+    complaint = Complaint(
+        user_id=payload.user_id,
+        complaint_type=payload.complaint_type,
+        complaint_subtype=payload.complaint_subtype,
+        complaint_location=payload.complaint_location,
+        urgency_level=payload.urgency_level,
+        additional_notes=payload.additional_notes,
+        ai_recommendation=payload.ai_recommendation,
+        complaint_status="Pending",
+        complaint_date=datetime.utcnow().date(),
+        created_at=datetime.utcnow()
+    )
+    db.add(complaint)
+    db.commit()
+    db.refresh(complaint)
+    return {"message": "Complaint created", "complaint_id": complaint.complaint_id}
+
 @router.patch("/{complaint_id}/status")
-def update_complaint_status(complaint_id: int, payload: dict, db: Session = Depends(get_db)):
+def update_complaint_status(complaint_id: int, payload: dict, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     complaint = db.query(Complaint).filter(Complaint.complaint_id == complaint_id).first()
     if not complaint:
         return {"error": "Complaint not found"}
@@ -129,4 +151,23 @@ def update_complaint_status(complaint_id: int, payload: dict, db: Session = Depe
     db.add(log)
     db.commit()
     db.refresh(complaint)
+
+    # Queue email if status changed to "in progress" or "resolved"
+    new_status = complaint.complaint_status.lower()
+    
+    if old_status.lower() != new_status and new_status in ["in progress", "resolved", "approved"]:
+        user = db.query(User).filter(User.user_id == complaint.user_id).first()
+        if user and getattr(user, "email", None):
+            display_status = "In Progress" if new_status == "in progress" else "Resolved"
+            background_tasks.add_task(
+                send_complaint_update_email,
+                user_email=user.email,
+                user_name=user.user_name,
+                complaint_id=complaint.complaint_id,
+                complaint_title=complaint.complaint_subtype,
+                new_status=display_status,
+                resolved_notes=payload.get("resolved_notes", ""),
+                proof_filename=complaint.resolved_media
+            )
+
     return {"message": "Status updated", "complaint_id": complaint_id, "status": complaint.complaint_status}

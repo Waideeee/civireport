@@ -96,7 +96,7 @@ window.addEventListener('load', function () {
         tr.innerHTML =
           '<td>' + u.name + '</td>' +
           '<td>' + u.email + '</td>' +
-          '<td>' + (u.created_at ? u.created_at.split('T')[0] : 'N/A') + '</td>' +
+          '<td>' + (u.created_at ? u.created_at.split(' ')[0] : 'N/A') + '</td>' +
           '<td class="actions-cell">' +
             '<button class="btn btn-success" onclick="approveUser(' + u.user_id + ', this)">Approve</button>' +
             '<button class="btn btn-danger"  onclick="rejectUser('  + u.user_id + ', this)">Reject</button>' +
@@ -138,15 +138,18 @@ window.addEventListener('load', function () {
       }
       var latest = logs.slice(0, 5);
       var html = '<table class="cr-table">' +
-                 '<thead><tr><th>Date</th><th>Admin</th><th>Complaint ID</th><th>Action</th></tr></thead>' +
+                 '<thead><tr><th>Date</th><th>Admin</th><th>Report ID</th><th>Action</th></tr></thead>' +
                  '<tbody>';
       latest.forEach(function (log) {
-        var idStr = String(log.complaint_id).padStart(3, '0');
+        var isEmergency = log.emergency_id !== null && log.emergency_id !== undefined;
+        var displayId = isEmergency ? String(log.emergency_id).padStart(3, '0') : String(log.complaint_id).padStart(3, '0');
+        var prefix = isEmergency ? '#EMG-' : '#';
+        
         var d = log.audit_date ? new Date(log.audit_date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'N/A';
         html += '<tr>' +
                   '<td>' + d + '</td>' +
                   '<td>' + (log.admin_name || 'System') + '</td>' +
-                  '<td><strong>#' + idStr + '</strong></td>' +
+                  '<td><strong>' + prefix + displayId + '</strong></td>' +
                   '<td><span style="color: #6b7280;">Status: </span><span style="font-weight:600; color: #374151;">' + log.old_status + '</span> &rarr; <span style="font-weight:600; color: #3b82f6;">' + log.new_status + '</span></td>' +
                 '</tr>';
       });
@@ -182,29 +185,6 @@ window.addEventListener('load', function () {
     });
   }
 
-  // ── Notifications ────────────────────────────────────────
-  var notifBtn      = document.getElementById('notif-btn');
-  var notifDropdown = document.getElementById('notif-dropdown');
-  var notifCount    = document.getElementById('notif-count');
-  var notifMarkAll  = document.getElementById('notif-mark-all');
 
-  if (notifBtn && notifDropdown) {
-    notifBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      notifDropdown.classList.toggle('open');
-    });
-    document.addEventListener('click', function (e) {
-      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-        notifDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  if (notifMarkAll) {
-    notifMarkAll.addEventListener('click', function () {
-      document.querySelectorAll('.notif-dot').forEach(d => d.classList.add('read'));
-      if (notifCount) notifCount.style.display = 'none';
-    });
-  }
 
 });

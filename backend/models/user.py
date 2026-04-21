@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date
+from sqlalchemy import Column, Integer, String, Boolean, Date, TIMESTAMP
 from database import Base
 
 class User(Base):
@@ -18,3 +18,4 @@ class User(Base):
     approved_at = Column(Date)
     status = Column(String(50), default="pending")
     rejection_reason = Column(String(500))
+    notified_at = Column(TIMESTAMP, nullable=True)

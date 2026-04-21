@@ -1,12 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-  const AI_RECOMMENDATIONS = {};
-  const DEFAULT_RECOMMENDATION = { urgency: 'Medium', summary: '', steps: [], action: '' };
-
-  function getAIRecommendation(subtype) {
-    return AI_RECOMMENDATIONS[subtype] || DEFAULT_RECOMMENDATION;
-  }
-
   function urgencyBadgeClass(level) {
     return { 'Critical': 'urgency-critical', 'High': 'urgency-high', 'Medium': 'urgency-medium', 'Low': 'urgency-low' }[level] || 'urgency-medium';
   }
@@ -109,7 +102,8 @@ document.addEventListener('DOMContentLoaded', function () {
           media:     c.media              || [],
           rejection_reason: c.rejection_reason || '',
           resolved_media:   c.resolved_media || '',
-          resolved_notes:   c.resolved_notes || ''
+          resolved_notes:   c.resolved_notes || '',
+          ai_recommendation: c.ai_recommendation || ''
         }));
         filteredData = [...complaints];
         applyFilters();
@@ -228,14 +222,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Toggle footer buttons based on status
     const btnApprove = document.getElementById('btn-approve');
     const btnReject = document.getElementById('btn-reject');
+    const btnInProgress = document.getElementById('btn-inprogress');
     
     if (c.status.toLowerCase() === 'pending') {
-      btnApprove.style.display = 'inline-block';
-      btnReject.style.display = 'inline-block';
-    } else if (c.status.toLowerCase() === 'in progress') {
+      btnInProgress.style.display = 'inline-block';
       btnApprove.style.display = 'none';
       btnReject.style.display = 'inline-block';
+    } else if (c.status.toLowerCase() === 'in progress') {
+      btnInProgress.style.display = 'none';
+      btnApprove.style.display = 'inline-block';
+      btnReject.style.display = 'inline-block';
     } else {
+      btnInProgress.style.display = 'none';
       btnApprove.style.display = 'none';
       btnReject.style.display = 'none';
     }
@@ -253,6 +251,19 @@ document.addEventListener('DOMContentLoaded', function () {
       mediaContainer.innerHTML = '<span style="color:#6b7280; font-style:italic;">No media attached</span>';
     }
 
+    const aiContentEl = document.getElementById('ai-recommendation-content');
+    if (aiContentEl) {
+      if (c.ai_recommendation) {
+          aiContentEl.innerHTML = c.ai_recommendation.replace(/\n/g, '<br>');
+          aiContentEl.style.fontStyle = 'normal';
+          aiContentEl.style.color = '#1e3a8a';
+      } else {
+          aiContentEl.textContent = 'No recommendation available';
+          aiContentEl.style.fontStyle = 'italic';
+          aiContentEl.style.color = '#9ca3af';
+      }
+    }
+
     document.getElementById('modal-overlay').classList.add('open');
   };
 
@@ -260,7 +271,43 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('modal-overlay').classList.remove('open');
   };
 
-  // ================= APPROVE =================
+  window.closeModal = function(e) {
+    if (e.target.id === 'modal-overlay') {
+      closeModalDirect();
+    }
+  };
+
+  // ================= IN PROGRESS =================
+  window.markInProgress = async function() {
+    const c = window.currentComplaint;
+    if (!c) return;
+    if (!confirm('Mark this complaint as In Progress? An email will be sent to the complainant.')) return;
+    
+    try {
+      const res = await fetch(`/Complaints/${c.id}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+          'X-HTTP-Method-Override': 'PATCH',
+        },
+        body: JSON.stringify({ status: 'in progress' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        closeModalDirect();
+        showCrToast('Complaint marked as in progress.', 'info');
+        reloadComplaints();
+      } else {
+        showCrToast('Failed to update status.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showCrToast('Network error.', 'error');
+    }
+  };
+
+  // ================= APPROVE/RESOLVE =================
   window.showComplaintApproveModal = function () {
     const c = window.currentComplaint;
     if (!c) return;
@@ -309,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       const payload = { 
-        status: 'in progress',
+        status: 'resolved',
         resolved_notes: notes,
         action_proof: mediaBase64,
         action_proof_name: mediaName
@@ -463,6 +510,25 @@ window.downloadComplaint = function () {
   // Wrap text to fit inside the box
   const splitNotes = doc.splitTextToSize(c.notes || "No additional notes provided by the resident.", 170);
   doc.text(splitNotes, 20, y + 8);
+  
+  y += 60;
+
+  // --- Section 4: AI Recommendation ---
+  drawSection("AI Recommendation");
+
+  doc.setFillColor(239, 246, 255); 
+  doc.setDrawColor(191, 219, 254);
+  doc.setLineWidth(0.5);
+  doc.rect(15, y, 180, 50, 'FD'); 
+  
+  doc.setFont("times", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(30, 58, 138);
+  
+  let aiText = c.ai_recommendation || "No recommendation available.";
+  aiText = aiText.replace(/\*\*/g, ''); // Clean simple markdown bolding
+  const splitAi = doc.splitTextToSize(aiText, 170);
+  doc.text(splitAi, 20, y + 8);
   
   // --- Footer ---
   const now = new Date();

@@ -80,7 +80,7 @@ function initLayout() {
             <th class="al-th">AUDIT ID</th>
             <th class="al-th">DATE AND TIME</th>
             <th class="al-th">ADMIN</th>
-            <th class="al-th">COMPLAINT ID</th>
+            <th class="al-th">REFERENCE</th>
             <th class="al-th">OLD STATUS</th>
             <th class="al-th">NEW STATUS</th>
           </tr>
@@ -114,9 +114,9 @@ function renderTable() {
           <td class="al-td al-mono">AUD-${String(r.audit_id).padStart(3, '0')}</td>
           <td class="al-td al-mono">${escapeHtml(r.audit_date)}</td>
           <td class="al-td">${escapeHtml(r.admin_name)}</td>
-          <td class="al-td al-mono">#${String(r.complaint_id).padStart(3, '0')}</td>
+          <td class="al-td al-mono">${r.complaint_id ? '#C-'+String(r.complaint_id).padStart(3, '0') : '#E-'+String(r.emergency_id).padStart(3, '0')}</td>
           <td class="al-td">${statusBadge(r.old_status)}</td>
-          <td class="al-td">${statusBadge(r.new_status)}</td>
+          <td class="al-td">${statusBadge(r.new_status)}${r.action_notes ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; max-width: 200px; white-space: normal; line-height: 1.2;">Note: ${escapeHtml(r.action_notes)}</div>` : ''}</td>
         </tr>`).join("")
     : `<tr><td colspan="6" class="al-empty">No audit records found.</td></tr>`;
 

@@ -136,7 +136,7 @@ body {
 }
 
 .notif-dropdown.open {
-  display: block;
+  display: block !important;
 }
 
 .notif-header {

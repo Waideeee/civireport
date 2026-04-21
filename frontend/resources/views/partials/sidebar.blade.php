@@ -15,9 +15,13 @@
 
   <div class="sidebar-nav">
     <p class="sidebar-section-label">MAIN</p>
-    <a @class(['nav-item', 'active' => request()->routeIs('dashboard')]) href="{{ route('dashboard') }}">Dashboard</a>
+    <a @class(['nav-item', 'active' => request()->routeIs('dashboard')]) href="{{ route('dashboard') }}">
+      Dashboard
+      <span id="sidebar-dashboard-badge" class="sidebar-badge" style="display: none;">0</span>
+    </a>
     <a @class(['nav-item', 'active' => request()->routeIs('Complaints')]) href="{{ route('Complaints') }}">Complaints</a>
     <a @class(['nav-item', 'active' => request()->routeIs('Announcements')]) href="{{ route('Announcements') }}">Announcements</a>
+    <a @class(['nav-item', 'active' => request()->routeIs('EmergencyReports')]) href="{{ route('EmergencyReports') }}">Emergency Reports</a>
 
     <p class="sidebar-section-label">USER MANAGEMENT</p>
     <a @class(['nav-item', 'active' => request()->routeIs('UserRecords')]) href="{{ route('UserRecords') }}">User Records</a>

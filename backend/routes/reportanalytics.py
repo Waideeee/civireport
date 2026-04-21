@@ -1,65 +1,55 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
 from database import get_db
 from models.complaint import Complaint
+from analytics_snapshot import build_analytics_snapshot
+from openai_insights import generate_analytics_insight
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+def _load_analytics_snapshot(db: Session):
+    rows = (
+        db.query(
+            Complaint.complaint_id,
+            Complaint.complaint_date,
+            Complaint.complaint_type,
+            Complaint.complaint_subtype,
+            Complaint.complaint_location,
+            Complaint.complaint_status,
+            Complaint.urgency_level,
+            Complaint.created_at,
+        )
+        .all()
+    )
+
+    records = [
+        {
+            "complaint_id": row.complaint_id,
+            "complaint_date": row.complaint_date,
+            "complaint_type": row.complaint_type,
+            "complaint_subtype": row.complaint_subtype,
+            "complaint_location": row.complaint_location,
+            "complaint_status": row.complaint_status,
+            "urgency_level": row.urgency_level,
+            "created_at": row.created_at,
+        }
+        for row in rows
+    ]
+    return build_analytics_snapshot(records)
+
+
 @router.get("/")
 def get_analytics(db: Session = Depends(get_db)):
-
-    total      = db.query(func.count(Complaint.complaint_id)).scalar()
-    resolved   = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "resolved").scalar()
-    pending    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "pending").scalar()
-    in_progress = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "in progress").scalar()
-    rejected   = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "rejected").scalar()
-
-    by_category = (
-        db.query(Complaint.complaint_type, func.count(Complaint.complaint_id))
-        .group_by(Complaint.complaint_type)
-        .all()
-    )
-
-    by_status = (
-        db.query(Complaint.complaint_status, func.count(Complaint.complaint_id))
-        .group_by(Complaint.complaint_status)
-        .all()
-    )
-
-    monthly = (
-        db.query(
-            extract('month', Complaint.complaint_date).label('month'),
-            extract('year', Complaint.complaint_date).label('year'),
-            func.count(Complaint.complaint_id)
-        )
-        .filter(Complaint.complaint_date != None)
-        .group_by('year', 'month')
-        .order_by('year', 'month')
-        .limit(7)
-        .all()
-    )
-
-    month_names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-
+    snapshot = _load_analytics_snapshot(db)
     return {
-        "summary": {
-            "total":       total,
-            "resolved":    resolved,
-            "pending":     pending,
-            "in_progress": in_progress,
-            "rejected":    rejected,
-        },
-        "by_category": {
-            "labels": [r[0] or "Unknown" for r in by_category],
-            "values": [r[1] for r in by_category],
-        },
-        "by_status": {
-            "labels": [r[0] or "Unknown" for r in by_status],
-            "values": [r[1] for r in by_status],
-        },
-        "monthly": {
-            "labels": [month_names[int(r[1]) - 1] for r in monthly],
-            "values": [r[2] for r in monthly],
-        },
+        "summary": snapshot["summary"],
+        "by_category": snapshot["by_category"],
+        "by_status": snapshot["by_status"],
+        "monthly": snapshot["monthly"],
     }
+
+
+@router.get("/insight")
+def get_analytics_insight(db: Session = Depends(get_db)):
+    snapshot = _load_analytics_snapshot(db)
+    return generate_analytics_insight(snapshot)

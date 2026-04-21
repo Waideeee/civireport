@@ -154,24 +154,19 @@
       </div>
 
       {{-- AI Recommendation --}}
-      <div class="ai-rec-card">
-        <div class="ai-rec-header">
-          <div class="ai-rec-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div class="ai-rec-card" style="margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px;">
+        <div class="ai-rec-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <div class="ai-rec-icon" style="background: #2563eb; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 16v-4M12 8h.01"/>
             </svg>
           </div>
-          <span class="ai-rec-title">AI Recommendation</span>
-          <span class="ai-rec-tag">Auto-generated</span>
+          <span class="ai-rec-title" style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">AI Recommendation</span>
+          <span class="ai-rec-tag" style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">Auto-generated</span>
         </div>
         <div class="ai-rec-body">
-          <p id="ai-summary" class="ai-rec-summary"></p>
-          <ul id="ai-steps" class="ai-rec-steps"></ul>
-          <div class="ai-rec-footer">
-            <span class="ai-rec-label">Suggested action:</span>
-            <span id="ai-action" class="ai-rec-action"></span>
-          </div>
+          <p id="ai-recommendation-content" style="font-size: 0.9rem; margin: 0; line-height: 1.5; color: #1e3a8a;"></p>
         </div>
       </div>
     </div>
@@ -180,7 +175,8 @@
       <button class="btn btn-download" onclick="downloadComplaint()">⬇ Download</button>
       {{-- Reject: opens reject confirmation modal --}}
       <button class="btn btn-danger" id="btn-reject" onclick="showComplaintRejectModal()">Reject</button>
-      <button class="btn btn-success" id="btn-approve" onclick="showComplaintApproveModal()">Approve</button>
+      <button class="btn btn-warning" id="btn-inprogress" onclick="markInProgress()" style="background:#f59e0b; color:white; border:none; display:none;">Mark In Progress</button>
+      <button class="btn btn-success" id="btn-approve" onclick="showComplaintApproveModal()" style="display:none;">Resolve</button>
     </div>
   </div>
 </div>
@@ -196,11 +192,11 @@
         <polyline points="22 4 12 14.01 9 11.01"/>
       </svg>
     </div>
-    <div class="cr-confirm-title">Approve Complaint</div>
+    <div class="cr-confirm-title">Resolve Complaint</div>
     <div class="cr-confirm-message">
-      Are you sure you want to approve complaint
+      Are you sure you want to resolve complaint
       <strong id="approve-complaint-id"></strong>?
-      The status will be updated to <em>In Progress</em>.
+      The status will be updated to <em>Resolved</em>.
     </div>
 
     <div class="cr-confirm-field" style="margin-top: 12px; text-align: left;">
@@ -227,7 +223,7 @@
     <div class="cr-confirm-actions">
       <button class="cr-btn cr-btn-ghost" onclick="closeComplaintApproveModal()">Cancel</button>
       <button class="cr-btn cr-btn-approve" id="complaint-approve-btn" onclick="submitComplaintApprove()">
-        <span id="c-approve-text">Yes, Approve</span>
+        <span id="c-approve-text">Yes, Resolve</span>
         <span id="c-approve-spinner" style="display:none;">Processing…</span>
       </button>
     </div>
@@ -277,5 +273,19 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewId = urlParams.get('view');
+    if (viewId) {
+        setTimeout(() => {
+            if (typeof window.openModal === 'function') {
+                window.openModal(parseInt(viewId));
+            }
+        }, 300);
+    }
+});
+</script>
 
 @endsection

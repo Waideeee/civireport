@@ -6,9 +6,11 @@ class AuditLog(Base):
 
     audit_id     = Column(Integer, primary_key=True, index=True)
     audit_date   = Column(TIMESTAMP)
-    complaint_id = Column(Integer)
+    complaint_id = Column(Integer, nullable=True)
+    emergency_id = Column(Integer, nullable=True)
     old_status   = Column(String(255))
     new_status   = Column(String(255))
+    action_notes = Column(String(1000), nullable=True)
     admin_id     = Column(Integer)
     created_at   = Column(TIMESTAMP)
     updated_at   = Column(TIMESTAMP)

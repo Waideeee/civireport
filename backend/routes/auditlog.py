@@ -19,8 +19,10 @@ def get_audit_logs(db: Session = Depends(get_db)):
             "audit_id":     a.audit_id,
             "audit_date":   str(a.created_at) if a.created_at else "",
             "complaint_id": a.complaint_id,
+            "emergency_id": a.emergency_id,
             "old_status":   a.old_status,
             "new_status":   a.new_status,
+            "action_notes": a.action_notes,
             "admin_name":   u.user_name,
         }
         for a, u in results

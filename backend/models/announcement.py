@@ -6,6 +6,7 @@ class Announcement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
+    category = Column(String(50), nullable=False, default="Community")
     post_date = Column(Date, nullable=False)
     event_date = Column(Date, nullable=False)
     venue = Column(String(255), nullable=False)

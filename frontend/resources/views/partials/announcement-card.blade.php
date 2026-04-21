@@ -9,7 +9,10 @@
           $status = $event->gte($today) ? 'Upcoming' : 'Past';
       }
     @endphp
-    <span class="announcement-badge">{{ $status }}</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <span class="announcement-badge" style="background: #EFF6FF; color: #1E3A8A;">{{ $a['category'] ?? 'Community' }}</span>
+      <span class="announcement-badge">{{ $status }}</span>
+    </div>
   </div>
 
   <p class="announcement-description">{{ $a['description'] ?? '' }}</p>

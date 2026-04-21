@@ -4,6 +4,7 @@ from models.user import User
 from models.complaint import Complaint
 from models.complaint_media import Complaint_media
 from models.announcement import Announcement
+from models.emergency import Emergency
 
 # 1. Create any missing tables (like complaint_media)
 Base.metadata.create_all(bind=engine)

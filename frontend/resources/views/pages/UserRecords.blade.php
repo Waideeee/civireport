@@ -229,4 +229,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewId = urlParams.get('view');
+    if (viewId) {
+        setTimeout(() => {
+            if (typeof window.openResidentModal === 'function') {
+                window.openResidentModal(parseInt(viewId));
+            } else {
+                // In case they are pending approvals, we can't open resident modal, so we do nothing or click approve
+                const btn = document.querySelector(`.btn-approve[data-id="${viewId}"]`);
+                if (btn) btn.click();
+            }
+        }, 500);
+    }
+});
+</script>
+
 @endsection

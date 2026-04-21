@@ -2,7 +2,11 @@
 
 @section('content')
 
-@vite(['resources/css/app.css', 'resources/css/Announcements.css', 'resources/js/app.js', 'resources/js/Announcements.js'])
+@push('scripts')
+    @vite(['resources/js/Announcements.js'])
+@endpush
+
+@vite(['resources/css/app.css', 'resources/css/Announcements.css', 'resources/js/app.js'])
 
 @php
     $total = count($announcements);
@@ -104,6 +108,16 @@
                 <label class="form-label" for="title">Title <span>*</span></label>
                 <input type="text" id="title" name="title" class="form-control" required placeholder="e.g. General Assembly Meeting">
             </div>
+            <div class="form-group">
+                <label class="form-label" for="category">Category <span>*</span></label>
+                <select id="category" name="category" class="form-control" required>
+                    <option value="" disabled selected>Select a category</option>
+                    <option value="Community">Community</option>
+                    <option value="Health">Health</option>
+                    <option value="Education">Education</option>
+                    <option value="Culture">Culture</option>
+                </select>
+            </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="post_date">Post Date <span>*</span></label>
@@ -148,6 +162,16 @@
             <div class="form-group">
                 <label class="form-label" for="edit_title">Title <span>*</span></label>
                 <input type="text" id="edit_title" name="title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edit_category">Category <span>*</span></label>
+                <select id="edit_category" name="category" class="form-control" required>
+                    <option value="" disabled selected>Select a category</option>
+                    <option value="Community">Community</option>
+                    <option value="Health">Health</option>
+                    <option value="Education">Education</option>
+                    <option value="Culture">Culture</option>
+                </select>
             </div>
             <div class="form-row">
                 <div class="form-group">

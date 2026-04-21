@@ -72,7 +72,10 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="announcement-card">
           <div class="announcement-card-header">
             <h3 class="announcement-title">${a.title}</h3>
-            <span class="announcement-badge">${status}</span>
+            <div style="display: flex; gap: 0.5rem;">
+              <span class="announcement-badge" style="background: #EFF6FF; color: #1E3A8A;">${a.category || 'Community'}</span>
+              <span class="announcement-badge">${status}</span>
+            </div>
           </div>
 
           <p class="announcement-description">${a.description || ''}</p>
@@ -115,19 +118,21 @@ document.addEventListener('DOMContentLoaded', function () {
   async function createAnnouncement(e) {
     if (e) e.preventDefault();
     const title = document.getElementById('title').value.trim();
+    const category = document.getElementById('category').value;
     const post_date = document.getElementById('post_date').value;
     const event_date = document.getElementById('event_date').value;
     const venue = document.getElementById('venue').value.trim();
     const description = document.getElementById('description').value.trim();
     const attendees = document.getElementById('who_will_attend').value.trim();
 
-    if (!title || !post_date || !event_date || !venue || !description || !attendees) {
+    if (!title || !category || !post_date || !event_date || !venue || !description || !attendees) {
       alert('Please fill in all required fields.');
       return;
     }
 
     const payload = {
       title: title,
+      category: category,
       post_date: post_date,
       event_date: event_date,
       venue: venue,
@@ -175,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!modal) return;
 
     modal.querySelector('[name="title"]').value = a.title;
+    modal.querySelector('[name="category"]').value = a.category;
     modal.querySelector('[name="post_date"]').value = a.post_date;
     modal.querySelector('[name="event_date"]').value = a.event_date;
     modal.querySelector('[name="venue"]').value = a.venue;
@@ -198,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const payload = {
       title: modal.querySelector('[name="title"]').value.trim(),
+      category: modal.querySelector('[name="category"]').value,
       post_date: modal.querySelector('[name="post_date"]').value,
       event_date: modal.querySelector('[name="event_date"]').value,
       venue: modal.querySelector('[name="venue"]').value.trim(),
@@ -233,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function clearCreateForm() {
     document.getElementById('title').value = '';
+    document.getElementById('category').value = '';
     document.getElementById('post_date').value = '';
     document.getElementById('event_date').value = '';
     document.getElementById('venue').value = '';

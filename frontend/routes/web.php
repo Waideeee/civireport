@@ -60,6 +60,11 @@ Route::middleware([
             return response()->json($api->getAnalytics());
         });
 
+        Route::get('/api/analytics/insight', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getAnalyticsInsight());
+        });
+
         Route::get('/api/announcements', function () {
             $api = app(App\Services\FastApiService::class);
             return response()->json($api->getAnnouncements());
@@ -78,7 +83,42 @@ Route::middleware([
             $data['admin_id'] = auth()->id();
             return response()->json($api->updateAnnouncement($id, $data));
         });
+        Route::get('/api/emergencies', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getEmergencies());
+        });
+
+        Route::get('/api/emergencies/pending', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getPendingEmergencies());
+        });
+
+        Route::patch('/api/emergencies/{id}/status', function ($id, \Illuminate\Http\Request $request) {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->updateEmergencyStatus($id, $request->all()));
+        });
+
+        Route::get('/api/notifications/complaints/latest', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getLatestComplaintNotification());
+        });
+
+        Route::get('/api/notifications/users/latest', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getLatestUserNotification());
+        });
+
+        Route::patch('/api/notifications/complaints/{id}/notified', function ($id) {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->markComplaintNotified($id));
+        });
+
+        Route::patch('/api/notifications/users/{id}/notified', function ($id) {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->markUserNotified($id));
+        });
     });
+
 
     // Complaints
     Route::get('/Complaints', [App\Http\Controllers\Admin\ComplaintController::class, 'index'])
@@ -117,6 +157,10 @@ Route::middleware([
     // Report Analytics
     Route::get('/ReportAnalytics', [App\Http\Controllers\Admin\ReportAnalyticsController::class, 'index'])
         ->name('ReportAnalytics');
+
+    // Emergency Reports
+    Route::get('/EmergencyReports', [App\Http\Controllers\Admin\EmergencyReportController::class, 'index'])
+        ->name('EmergencyReports');
 
     Route::get('/admin/complaints/{id}/download', [ComplaintController::class, 'downloadComplaint']);
 });

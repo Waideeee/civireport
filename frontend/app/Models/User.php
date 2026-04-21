@@ -25,6 +25,17 @@ class User extends Authenticatable
 
     public $timestamps = false; 
 
+    /**
+     * The attributes that should have default values.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'contact_num' => '0000000000',
+        'address' => 'Not provided',
+        'role' => 'user',
+        'is_active' => true,
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -62,16 +73,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
-        'name',
     ];
-
-    /**
-     * Get the user's name (mapped from user_name).
-     */
-    public function getNameAttribute()
-    {
-        return $this->user_name;
-    }
 
     /**
      * Get the attributes that should be cast.
