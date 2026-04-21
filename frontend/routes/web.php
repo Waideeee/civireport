@@ -60,6 +60,11 @@ Route::middleware([
             return response()->json($api->getAnalytics());
         });
 
+        Route::get('/api/analytics/insight', function () {
+            $api = app(App\Services\FastApiService::class);
+            return response()->json($api->getAnalyticsInsight());
+        });
+
         Route::get('/api/announcements', function () {
             $api = app(App\Services\FastApiService::class);
             return response()->json($api->getAnnouncements());

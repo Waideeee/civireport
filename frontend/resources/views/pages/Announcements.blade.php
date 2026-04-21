@@ -1,8 +1,10 @@
 @extends('layouts.app')
 
-@section('content')
+@push('scripts')
+    @vite(['resources/js/Announcements.js'])
+@endpush
 
-@vite(['resources/css/app.css', 'resources/css/Announcements.css', 'resources/js/app.js', 'resources/js/Announcements.js'])
+@section('content')
 
 @php
     $total = count($announcements);

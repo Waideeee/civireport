@@ -13,9 +13,9 @@ class FastApiService
         $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
     }
 
-    protected function client()
+    protected function client($timeout = 10)
     {
-        return Http::timeout(10)->baseUrl($this->baseUrl);
+        return Http::timeout($timeout)->baseUrl($this->baseUrl);
     }
 
     public function getDashboardUserStats()
@@ -87,6 +87,11 @@ class FastApiService
         return $this->client()->get('/analytics')->json();
     }
 
+    public function getAnalyticsInsight()
+    {
+        return $this->client(30)->get('/analytics/insight')->json();
+    }
+
     public function getAnnouncements()
     {
         return $this->client()->get('/announcements')->json();
@@ -102,7 +107,7 @@ class FastApiService
         return $this->client()->put("/announcements/{$id}", $data)->json();
     }
     public function deleteAnnouncement($id)
-{
-    return $this->client()->delete("/announcements/{$id}")->json();
-}
+    {
+        return $this->client()->delete("/announcements/{$id}")->json();
+    }
 }

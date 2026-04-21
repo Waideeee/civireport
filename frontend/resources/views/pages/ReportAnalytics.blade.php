@@ -6,16 +6,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   window.__analytics = {
-    categoryLabels: @json($byType->keys()),
-    categoryData:   @json($byType->values()),
-    statusLabels:   @json($byStatus->keys()),
-    statusData:     @json($byStatus->values()),
-    monthLabels:    @json($months),
-    trendData:      @json($trendData),
-    stats: {
-      total:    {{ $stats['total_complaints'] ?? 0 }},
-      resolved: {{ $stats['resolved_complaints'] ?? 0 }},
-      pending:  {{ $stats['pending_complaints'] ?? 0 }},
+    categoryLabels: @json(data_get($analytics, 'by_category.labels', [])),
+    categoryData:   @json(data_get($analytics, 'by_category.values', [])),
+    statusLabels:   @json(data_get($analytics, 'by_status.labels', [])),
+    statusData:     @json(data_get($analytics, 'by_status.values', [])),
+    monthLabels:    @json(data_get($analytics, 'monthly.labels', [])),
+    trendData:      @json(data_get($analytics, 'monthly.values', [])),
+    summary: {
+      total:       {{ data_get($analytics, 'summary.total', 0) }},
+      resolved:    {{ data_get($analytics, 'summary.resolved', 0) }},
+      pending:     {{ data_get($analytics, 'summary.pending', 0) }},
+      in_progress: {{ data_get($analytics, 'summary.in_progress', 0) }},
+      rejected:    {{ data_get($analytics, 'summary.rejected', 0) }},
     }
   };
 </script>
@@ -44,28 +46,46 @@
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-num" id="stat-total">{{ $stats['total_complaints'] ?? 0 }}</div>
+        <div class="stat-num" id="stat-total">{{ data_get($analytics, 'summary.total', 0) }}</div>
         <div class="stat-label">Total Reports</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" id="stat-resolved">{{ $stats['resolved_complaints'] ?? 0 }}</div>
+        <div class="stat-num" id="stat-resolved">{{ data_get($analytics, 'summary.resolved', 0) }}</div>
         <div class="stat-label">Resolved</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" id="stat-pending">{{ $stats['pending_complaints'] ?? 0 }}</div>
+        <div class="stat-num" id="stat-pending">{{ data_get($analytics, 'summary.pending', 0) }}</div>
         <div class="stat-label">Pending</div>
       </div>
       <div class="stat-card">
         <div class="stat-num" id="stat-rate">
           @php
-            $total    = $stats['total_complaints'] ?? 0;
-            $resolved = $stats['resolved_complaints'] ?? 0;
+            $total    = data_get($analytics, 'summary.total', 0);
+            $resolved = data_get($analytics, 'summary.resolved', 0);
             echo $total > 0 ? round(($resolved / $total) * 100) . '%' : '0%';
           @endphp
         </div>
         <div class="stat-label">Resolution Rate</div>
       </div>
     </div>
+
+    <section class="ai-insight-card" id="analyticsInsight" aria-live="polite">
+      <div class="ai-insight-header">
+        <div>
+          <div class="ai-insight-eyebrow">AI Insight</div>
+          <div class="ai-insight-heading">Barangay Report Interpretation</div>
+        </div>
+        <div class="ai-insight-meta" id="analyticsInsightMeta">Generating analysis...</div>
+      </div>
+
+      <div class="ai-insight-content ai-insight-loading" id="analyticsInsightContent">
+        <div class="ai-skeleton ai-skeleton-title"></div>
+        <div class="ai-skeleton ai-skeleton-line"></div>
+        <div class="ai-skeleton ai-skeleton-line ai-skeleton-line-short"></div>
+        <div class="ai-skeleton ai-skeleton-card"></div>
+        <div class="ai-skeleton ai-skeleton-card"></div>
+      </div>
+    </section>
 
     <div class="analytics-charts">
       <div class="chart-card">
