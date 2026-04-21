@@ -1,0 +1,95 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Backend - Python
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/*.so
+backend/.Python
+backend/build/
+backend/develop-eggs/
+backend/dist/
+backend/downloads/
+backend/eggs/
+backend/.eggs/
+backend/lib/
+backend/lib64/
+backend/parts/
+backend/sdist/
+backend/var/
+backend/wheels/
+backend/pip-wheel-metadata/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/*.egg-info/
+backend/.venv/
+backend/venv/
+backend/ENV/
+backend/env/
+
+# Frontend - Laravel
+frontend/vendor/
+frontend/node_modules/
+frontend/.env
+frontend/.env.*.php
+frontend/storage/logs/*
+!frontend/storage/logs/.gitignore
+frontend/storage/framework/*
+!frontend/storage/framework/.gitignore
+frontend/storage/app/*
+!frontend/storage/app/.gitignore
+frontend/bootstrap/cache/*
+!frontend/bootstrap/cache/.gitignore
+frontend/.DS_Store
+frontend/Thumbs.db
+
+# Frontend - Node/NPM
+frontend/node_modules/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/dist/
+frontend/build/
+
+# Frontend - Vite
+frontend/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.lnk
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# SSL Certificates (if any)
+*.pem
+*.key
+*.crt
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.temp
