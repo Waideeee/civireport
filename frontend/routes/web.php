@@ -3,17 +3,26 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\ComplaintController;
+use App\Http\Controllers\Auth\BarangayAdminVerificationController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/verify-email/{token}', [BarangayAdminVerificationController::class, 'verify'])
+    ->name('barangay-admin.verification.verify');
+
+Route::post('/verify-email/resend', [BarangayAdminVerificationController::class, 'resend'])
+    ->name('barangay-admin.verification.resend');
+
 Route::middleware([
-    'auth:sanctum', 
+    'auth:sanctum',
     config('jetstream.auth_session'),
+    'ensure.authenticated',
     'verified',
     'admin',
     'active.user',
+    'no.cache',
 ])->group(function () {
 
     // Dashboard
@@ -45,8 +54,21 @@ Route::middleware([
 
         Route::patch('/api/complaints/{id}/status', function ($id, \Illuminate\Http\Request $request) {
             $api = app(App\Services\FastApiService::class);
+            $payload = $request->all();
+            $payload['admin_id'] = auth()->id();
+            $result = $api->updateComplaintStatus(
+                $id,
+                $payload['complaint_status'] ?? $payload['status'] ?? $request->complaint_status ?? $request->status,
+                $payload['admin_id'],
+                $payload['rejection_reason'] ?? null,
+                $payload['action_proof'] ?? null,
+                $payload['action_proof_name'] ?? null,
+                $payload['resolved_notes'] ?? null
+            );
+
             return response()->json(
-                $api->updateComplaintStatus($id, $request->complaint_status, auth()->id())
+                $result['data'] ?? ['detail' => 'Failed to update complaint status.'],
+                $result['status'] ?? 422
             );
         });
 
@@ -95,7 +117,9 @@ Route::middleware([
 
         Route::patch('/api/emergencies/{id}/status', function ($id, \Illuminate\Http\Request $request) {
             $api = app(App\Services\FastApiService::class);
-            return response()->json($api->updateEmergencyStatus($id, $request->all()));
+            $payload = $request->all();
+            $payload['admin_id'] = auth()->id();
+            return response()->json($api->updateEmergencyStatus($id, $payload));
         });
 
         Route::get('/api/notifications/complaints/latest', function () {
@@ -162,5 +186,36 @@ Route::middleware([
     Route::get('/EmergencyReports', [App\Http\Controllers\Admin\EmergencyReportController::class, 'index'])
         ->name('EmergencyReports');
 
-    Route::get('/admin/complaints/{id}/download', [ComplaintController::class, 'downloadComplaint']);
+    Route::get('/Complaints/{id}/download', [ComplaintController::class, 'downloadComplaint'])
+        ->name('Complaints.download');
+});
+
+// Super Admin Routes
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'ensure.authenticated',
+    'verified',
+    'superadmin',
+    'active.user',
+    'no.cache',
+])->prefix('superadmin')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Admin\SuperAdminController::class, 'index'])
+        ->name('superadmin.dashboard');
+
+    Route::get('/admins', [App\Http\Controllers\Admin\SuperAdminController::class, 'admins'])
+        ->name('superadmin.admins');
+
+    Route::get('/audit-log', [App\Http\Controllers\Admin\SuperAdminController::class, 'auditLog'])
+        ->name('superadmin.audit_log');
+
+    Route::get('/proxy/audit-logs', function(App\Services\FastApiService $api) {
+        return response()->json($api->getSuperAdminAuditLogs());
+    })->name('superadmin.proxy.audit_logs');
+
+    Route::patch('/users/{id}/deactivate', [App\Http\Controllers\Admin\SuperAdminController::class, 'deactivate'])
+        ->name('superadmin.users.deactivate');
+
+    Route::patch('/users/{id}/activate', [App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])
+        ->name('superadmin.users.activate');
 });

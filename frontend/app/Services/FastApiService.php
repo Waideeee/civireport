@@ -1,18 +1,33 @@
 <?php
 namespace App\Services;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 class FastApiService
 {
     protected $baseUrl;
+    protected $internalApiKey;
 
     public function __construct()
     {
         $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8001');
+        $this->internalApiKey = env('INTERNAL_API_KEY');
     }
 
     protected function client($timeout = 10)
     {
-        return Http::timeout($timeout)->baseUrl($this->baseUrl);
+        $headers = [
+            'X-CiviReport-Internal-Key' => $this->internalApiKey,
+        ];
+
+        if (Auth::check()) {
+            $headers['X-CiviReport-Actor-Id'] = (string) Auth::id();
+            $headers['X-CiviReport-Actor-Role'] = strtolower((string) (Auth::user()->role ?? ''));
+        }
+
+        return Http::timeout($timeout)
+            ->baseUrl($this->baseUrl)
+            ->acceptJson()
+            ->withHeaders($headers);
     }
 
     public function getDashboardUserStats()
@@ -23,6 +38,61 @@ class FastApiService
     public function getDashboardStats()
     {
         return $this->client()->get('/dashboard/stats')->json();
+    }
+
+    public function getSuperAdminStats()
+    {
+        return $this->client()->get('/superadmin/stats')->json();
+    }
+
+    public function getSuperAdminAuditLogs()
+    {
+        return $this->client()->get('/superadmin/audit-logs')->json();
+    }
+
+
+    public function logSuperAdminAction($adminId, $targetUserId, $action)
+    {
+        return $this->client()->post('/superadmin/log', [
+            'admin_id' => $adminId,
+            'target_user_id' => $targetUserId,
+            'action' => $action
+        ])->json();
+    }
+
+    public function registerBarangayAdmin(array $payload): array
+    {
+        $response = $this->client()->post('/api/admin/register-barangay-admin', $payload);
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
+    }
+
+    public function verifyBarangayAdminEmail(string $token): array
+    {
+        $response = $this->client()->get("/api/auth/verify-email/{$token}");
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
+    }
+
+    public function resendBarangayAdminVerification(string $email): array
+    {
+        $response = $this->client()->post('/api/auth/resend-verification', [
+            'email' => $email,
+        ]);
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
     }
 
     public function getDashboardPendingUsers()
@@ -42,24 +112,47 @@ class FastApiService
 
     public function getComplaints()
     {
-        return $this->client()->get('/complaints')->json();
+        return $this->client()->get('/api/complaints')->json();
+    }
+
+    public function sendVerificationEmail($email, $name, $url)
+    {
+        return $this->client()->post('/users/send-verification', [
+            'email' => $email,
+            'name' => $name,
+            'verification_url' => $url,
+        ])->json();
+    }
+
+    public function sendVerificationSuccessEmail($email, $name)
+    {
+        return $this->client()->post('/users/send-verification-success', [
+            'email' => $email,
+            'name' => $name,
+        ])->json();
     }
 
     public function getComplaint($id)
     {
-        return $this->client()->get("/complaints/{$id}")->json();
+        return $this->client()->get("/api/complaints/{$id}")->json();
     }
 
     public function updateComplaintStatus($id, $status, $adminId = null, $rejectionReason = null, $actionProof = null, $actionProofName = null, $resolvedNotes = null)
     {
-        return $this->client()->patch("/complaints/{$id}/status", [
+        $response = $this->client()->patch("/api/complaints/{$id}/status", [
             'complaint_status'  => $status,
             'admin_id'          => $adminId,
             'rejection_reason'  => $rejectionReason,
             'action_proof'      => $actionProof,
             'action_proof_name' => $actionProofName,
             'resolved_notes'    => $resolvedNotes,
-        ])->json();
+        ]);
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
     }
 
     public function getUsers()
@@ -75,6 +168,16 @@ class FastApiService
     public function updateUserStatus($id, $payload)
     {
         return $this->client()->patch("/users/{$id}/status", $payload)->json();
+    }
+
+    public function getPendingAdmins()
+    {
+        return $this->client()->get('/users/pending-admins')->json();
+    }
+
+    public function getAllAdmins()
+    {
+        return $this->client()->get('/users/all-admins')->json();
     }
 
     public function getAuditLogs()

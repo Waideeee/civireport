@@ -41,6 +41,6 @@
 
   <div class="announcement-footer" style="display:flex; justify-content:space-between; align-items:center;">
     <span>Posted on {{ \Carbon\Carbon::parse($a['post_date'])->format('M j, Y') }}</span>
-    <button class="btn-edit btn-sm" style="flex: 0" data-id="{{ $a['id'] }}">Edit</button>
+    <button class="btn-edit btn-sm" style="flex: 0" data-id="{{ $a['announcement_id'] }}">Edit</button>
   </div>
 </div>

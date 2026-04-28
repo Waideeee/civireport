@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // ===== State =====
   let pendingList      = [];
   let residentsList    = [];
@@ -108,10 +117,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tbody.innerHTML = filtered.map(u => `
       <tr data-id="${u.id}">
-        <td><strong>${u.name}</strong></td>
-        <td>${u.email}</td>
-        <td>${u.contact}</td>
-        <td>${u.date_registered}</td>
+        <td><strong>${escapeHtml(u.name)}</strong></td>
+        <td>${escapeHtml(u.email)}</td>
+        <td>${escapeHtml(u.contact)}</td>
+        <td>${escapeHtml(u.date_registered)}</td>
         <td class="actions-cell">
           <button class="btn btn-success btn-approve" data-id="${u.id}">Approve</button>
           <button class="btn btn-danger btn-reject" data-id="${u.id}">Reject</button>
@@ -257,11 +266,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tbody.innerHTML = filtered.map(r => `
       <tr data-id="${r.id}">
-        <td><strong>${r.name}</strong></td>
-        <td>${r.email}</td>
-        <td>${r.contact}</td>
-        <td>${r.date_registered}</td>
-        <td><span class="badge ${r.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${r.status}</span></td>
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td>${escapeHtml(r.email)}</td>
+        <td>${escapeHtml(r.contact)}</td>
+        <td>${escapeHtml(r.date_registered)}</td>
+        <td><span class="badge ${r.status === 'Active' ? 'badge-active' : 'badge-inactive'}">${escapeHtml(r.status)}</span></td>
         <td><button class="btn btn-ghost" style="color:#2563eb; font-weight:600; font-size:0.75rem;" onclick="openResidentModal(${r.id})">View Info</button></td>
       </tr>
     `).join('');

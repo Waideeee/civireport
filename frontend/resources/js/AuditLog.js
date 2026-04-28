@@ -46,6 +46,16 @@ function statusBadge(status) {
   return html;
 }
 
+function referenceLabel(row) {
+  if (row.complaint_id) {
+    return `#C-${String(row.complaint_id).padStart(3, '0')}`;
+  }
+  if (row.emergency_id) {
+    return `#E-${String(row.emergency_id).padStart(3, '0')}`;
+  }
+  return 'Resident Account';
+}
+
 function sortData(data) {
   return [...data].sort((a, b) =>
     currentSort === "newest" ? b.audit_id - a.audit_id : a.audit_id - b.audit_id
@@ -114,7 +124,7 @@ function renderTable() {
           <td class="al-td al-mono">AUD-${String(r.audit_id).padStart(3, '0')}</td>
           <td class="al-td al-mono">${escapeHtml(r.audit_date)}</td>
           <td class="al-td">${escapeHtml(r.admin_name)}</td>
-          <td class="al-td al-mono">${r.complaint_id ? '#C-'+String(r.complaint_id).padStart(3, '0') : '#E-'+String(r.emergency_id).padStart(3, '0')}</td>
+          <td class="al-td ${r.complaint_id || r.emergency_id ? 'al-mono' : ''}">${escapeHtml(referenceLabel(r))}</td>
           <td class="al-td">${statusBadge(r.old_status)}</td>
           <td class="al-td">${statusBadge(r.new_status)}${r.action_notes ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; max-width: 200px; white-space: normal; line-height: 1.2;">Note: ${escapeHtml(r.action_notes)}</div>` : ''}</td>
         </tr>`).join("")
@@ -137,16 +147,18 @@ function applyFilters() {
     ? [...auditLogData]
     : auditLogData.filter((r) => {
         const audIdStr = `aud-${String(r.audit_id).padStart(3, '0')}`.toLowerCase();
-        const compIdStr = `#${String(r.complaint_id).padStart(3, '0')}`.toLowerCase();
+        const referenceStr = referenceLabel(r).toLowerCase();
         
         return audIdStr.includes(q) ||
-        compIdStr.includes(q) ||
+        referenceStr.includes(q) ||
         String(r.audit_id).includes(q) ||
-        String(r.complaint_id).includes(q) ||
+        String(r.complaint_id || '').includes(q) ||
+        String(r.emergency_id || '').includes(q) ||
         (r.admin_name    || '').toLowerCase().includes(q) ||
         (r.audit_date    || '').toLowerCase().includes(q) ||
         (r.old_status    || '').toLowerCase().includes(q) ||
-        (r.new_status    || '').toLowerCase().includes(q);
+        (r.new_status    || '').toLowerCase().includes(q) ||
+        (r.action_notes  || '').toLowerCase().includes(q);
       });
   currentPage = 1;
   renderTable();

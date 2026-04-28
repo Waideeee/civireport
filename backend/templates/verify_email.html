@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Email — CiviReport</title>
+  </head>
+  <body
+    style="
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 32px 16px;
+    "
+  >
+    <div style="max-width: 620px; margin: 0 auto">
+      <!-- Header Brand Bar -->
+      <div
+        style="
+          background: #1e3a8a;
+          border-radius: 12px 12px 0 0;
+          padding: 24px 32px;
+          display: flex;
+          align-items: center;
+        "
+      >
+        <div
+          style="
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+          "
+        >
+          <span style="color: #fff; font-size: 20px; font-weight: 900;">C</span>
+        </div>
+        <div style="line-height: 1.2;">
+          <div style="color: #fff; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em;">CiviReport</div>
+          <div style="color: #bfdbfe; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;">Security Check</div>
+        </div>
+      </div>
+
+      <!-- Hero Banner -->
+      <div
+        style="
+          background: #1e3a8a;
+          padding: 32px;
+          text-align: center;
+        "
+      >
+        <div style="color: #fff; font-size: 1.5rem; font-weight: 700; margin-bottom: 8px">Verify Your Email</div>
+        <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.95rem;">Confirm your address to secure your admin account.</div>
+      </div>
+
+      <!-- Main Content -->
+      <div style="background: #ffffff; padding: 32px">
+        <p style="margin: 0 0 16px; font-size: 1rem; color: #111827">Hello, <strong>{{ user_name }}</strong></p>
+        <p style="margin: 0 0 24px; font-size: 0.9rem; color: #4b5563; line-height: 1.6;">
+          Thank you for being part of the CiviReport admin team. Before you can access all administrative features, we need to verify that this email address belongs to you.
+        </p>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="{{ verification_url }}" 
+             style="background: #1e3a8a; color: #ffffff; padding: 14px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-block; font-size: 0.95rem;">
+             Verify Email Address
+          </a>
+        </div>
+
+        <p style="margin: 24px 0 0; font-size: 0.85rem; color: #6b7280; line-height: 1.6;">
+          If you did not create a CiviReport account, no further action is required.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background: #f9fafb; border-radius: 0 0 12px 12px; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-size: 0.75rem; color: #9ca3af; text-align: center;">
+          CiviReport &mdash; Barangay Complaint Management Platform
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

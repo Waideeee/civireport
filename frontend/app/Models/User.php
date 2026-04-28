@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -33,7 +32,7 @@ class User extends Authenticatable
     protected $attributes = [
         'contact_num' => '0000000000',
         'address' => 'Not provided',
-        'role' => 'user',
+        'role' => 'resident',
         'is_active' => true,
     ];
 
@@ -48,10 +47,17 @@ class User extends Authenticatable
         'gender',       
         'contact_num',  
         'address', 
+        'barangay',
         'password',     
         'role',         
         'is_active',    
+        'status',
         'approved_at',
+        'rejection_reason',
+        'profile_photo_path',
+        'email_verified_at',
+        'email_verification_token',
+        'email_verification_token_expires',
     ];
 
     /**
@@ -84,6 +90,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_token_expires' => 'datetime',
             'password' => 'hashed',
         ];
     }

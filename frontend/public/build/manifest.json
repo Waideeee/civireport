@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/Complaints.css": {
-    "file": "assets/Complaints-BsVDeEz0.css",
+    "file": "assets/Complaints-CxULO1bX.css",
     "src": "resources/css/Complaints.css",
     "isEntry": true,
     "name": "Complaints",
@@ -36,7 +36,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BaWJZkox.css",
+    "file": "assets/app-BY2wjgvz.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -62,34 +62,38 @@
       "emergency-alert.css"
     ]
   },
+  "resources/css/superadmin.css": {
+    "file": "assets/superadmin-V7_UFHOs.css",
+    "src": "resources/css/superadmin.css",
+    "isEntry": true,
+    "name": "superadmin",
+    "names": [
+      "superadmin.css"
+    ]
+  },
   "resources/js/Complaints.js": {
-    "file": "assets/Complaints-O1S6bg6n.js",
+    "file": "assets/Complaints-Cu1e1y-k.js",
     "name": "Complaints",
     "src": "resources/js/Complaints.js",
     "isEntry": true
   },
   "resources/js/ReportAnalytics.js": {
-    "file": "assets/ReportAnalytics-DNeMloFa.js",
+    "file": "assets/ReportAnalytics-CCdikylC.js",
     "name": "ReportAnalytics",
     "src": "resources/js/ReportAnalytics.js",
     "isEntry": true
   },
   "resources/js/UserRecords.js": {
-    "file": "assets/UserRecords-B1Tuy0-l.js",
+    "file": "assets/UserRecords-CQzLTIQ6.js",
     "name": "UserRecords",
     "src": "resources/js/UserRecords.js",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CtcHdIn6.js",
+    "file": "assets/app-BuG9aa18.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true,
-    "imports": [
-      "resources/js/Complaints.js",
-      "resources/js/UserRecords.js",
-      "resources/js/ReportAnalytics.js"
-    ]
+    "isEntry": true
   },
   "resources/js/emergency-alert.js": {
     "file": "assets/emergency-alert-C2LXPlQA.js",
@@ -98,9 +102,15 @@
     "isEntry": true
   },
   "resources/js/global-notifications.js": {
-    "file": "assets/global-notifications-n-RSp12_.js",
+    "file": "assets/global-notifications-DTFftFTN.js",
     "name": "global-notifications",
     "src": "resources/js/global-notifications.js",
+    "isEntry": true
+  },
+  "resources/js/superadmin-admins.js": {
+    "file": "assets/superadmin-admins-DE3oR4Ax.js",
+    "name": "superadmin-admins",
+    "src": "resources/js/superadmin-admins.js",
     "isEntry": true
   }
 }

@@ -1,0 +1,146 @@
+/* resources/css/superadmin.css */
+
+/* Super Admin Overrides */
+.sidebar {
+    background-color: #1E3A8A !important;
+}
+
+.brand-sub {
+    color: #94a3b8 !important;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+}
+
+.sidebar-section-label {
+    color: #94a3b8 !important;
+}
+
+.nav-item {
+    color: #cbd5e1 !important;
+}
+
+.nav-item:hover, .nav-item.active {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #f8fafc !important;
+}
+
+.nav-item.active::before {
+    background: #38bdf8 !important;
+}
+
+.sidebar-role {
+    color: #94a3b8 !important;
+}
+
+/* Dashboard Specifics */
+.superadmin-label-tag {
+    background: #334155;
+    color: #38bdf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.stat-card {
+    border-top: 4px solid #38bdf8;
+}
+
+.btn-approve {
+    background: #10b981;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-reject {
+    background: #ef4444;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-deactivate {
+    background: #64748b;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-activate {
+    background: #3b82f6;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-view-details {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.btn-view-details:hover {
+    background: #e5e7eb !important;
+}
+
+.admin-profile-header img {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.detail-item p {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.see-all {
+    color: #1E3A8A;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.see-all:hover {
+    text-decoration: underline;
+}
+
+.admin-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.admin-row:hover {
+    background-color: #f8fafc;
+}
+
+.badge-not-set {
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

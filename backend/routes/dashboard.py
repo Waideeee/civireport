@@ -1,22 +1,34 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_, cast, String
 from database import get_db
 from models.user import User
 from models.complaint import Complaint
+from security import ADMIN_ROLES
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+
+
+def _admin_role_expr():
+    return func.lower(cast(User.role, String)).in_(tuple(ADMIN_ROLES))
+
+
+def _non_admin_role_expr():
+    return or_(~_admin_role_expr(), User.role.is_(None))
+
+
+def _resident_role_expr():
+    return func.lower(cast(User.role, String)) == "resident"
 
 @router.get("/stats")
 def get_dashboard_stats(db: Session = Depends(get_db)):
     pending_count = db.query(func.count(User.user_id)).filter(
-        func.lower(User.role) != "admin",
+        _resident_role_expr(),
         func.lower(User.status) == "pending"
     ).scalar()
 
     registered_count = db.query(func.count(User.user_id)).filter(
-        func.lower(User.role) != "admin",
-        func.lower(User.status) == "approved"
+        _resident_role_expr(),
     ).scalar()
 
     return {
@@ -24,27 +36,52 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "registered_users": registered_count,
     }
 
+@router.get("/superadmin-stats")
+def get_superadmin_stats(db: Session = Depends(get_db)):
+    active_admins = db.query(func.count(User.user_id)).filter(
+        _admin_role_expr(),
+        or_(func.lower(cast(User.status, String)).in_(["active", "approved", "resolved"]), User.is_active == True)
+    ).scalar()
+
+    inactive_admins = db.query(func.count(User.user_id)).filter(
+        _admin_role_expr(),
+        or_(func.lower(cast(User.status, String)).in_(["deactivated", "inactive", "rejected"]), User.is_active == False)
+    ).scalar()
+
+    total_residents = db.query(func.count(User.user_id)).filter(
+        func.lower(User.role) == "resident"
+    ).scalar()
+
+    total_complaints = db.query(func.count(Complaint.complaint_id)).scalar()
+
+    return {
+        "active_admins": active_admins,
+        "inactive_admins": inactive_admins,
+        "total_residents": total_residents,
+        "total_complaints": total_complaints,
+    }
+
 @router.get("/complaint-stats")
 def get_complaint_stats(db: Session = Depends(get_db)):
-    pending     = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "pending").scalar()
-    in_progress = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "in progress").scalar()
-    approved    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "approved").scalar()
-    rejected    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(Complaint.complaint_status) == "rejected").scalar()
+    pending     = db.query(func.count(Complaint.complaint_id)).filter(func.lower(cast(Complaint.complaint_status, String)) == "pending").scalar()
+    in_progress = db.query(func.count(Complaint.complaint_id)).filter(func.lower(cast(Complaint.complaint_status, String)) == "in_progress").scalar()
+    resolved    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(cast(Complaint.complaint_status, String)) == "resolved").scalar()
+    rejected    = db.query(func.count(Complaint.complaint_id)).filter(func.lower(cast(Complaint.complaint_status, String)) == "rejected").scalar()
     total       = db.query(func.count(Complaint.complaint_id)).scalar()
 
     return {
         "pending":     pending,
         "in_progress": in_progress,
-        "approved":    approved,
+        "resolved":    resolved,
         "rejected":    rejected,
         "total":       total,
     }
 @router.get("/pending-users")
 def get_pending_users(db: Session = Depends(get_db)):
     users = db.query(User).filter(
-        func.lower(User.role) != "admin",
-        func.lower(User.status) == "pending"
-    ).limit(5).all()
+        _resident_role_expr(),
+        func.lower(cast(User.status, String)) == "pending"
+    ).order_by(User.date_registered.desc()).all()
     return [
         {
             "user_id":    u.user_id,
@@ -58,15 +95,14 @@ def get_pending_users(db: Session = Depends(get_db)):
 @router.get("/registered-users")
 def get_registered_users(db: Session = Depends(get_db)):
     users = db.query(User).filter(
-        func.lower(User.role) != "admin",
-        func.lower(User.status) == "approved"
-    ).limit(5).all()
+        _resident_role_expr(),
+    ).order_by(User.date_registered.desc(), User.user_id.desc()).limit(5).all()
     return [
         {
             "user_id": u.user_id,
             "name":    u.user_name,
             "address": u.address if u.address else "N/A",
-            "status":  u.status
+            "status":  u.status or "resident"
         }
         for u in users
     ]

@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import func, or_, cast, String
 from sqlalchemy.orm import Session
 from database import get_db
 from models.complaint import Complaint
 from models.user import User
 from datetime import datetime
+from security import ADMIN_ROLES
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
+
+
+def _non_admin_role_expr():
+    return or_(~func.lower(cast(User.role, String)).in_(tuple(ADMIN_ROLES)), User.role.is_(None))
 
 @router.get("/test_generate")
 def test_generate(db: Session = Depends(get_db)):
@@ -66,6 +72,7 @@ def get_latest_user_notification(db: Session = Depends(get_db)):
         db.query(User)
         .filter(User.notified_at.is_(None))
         .filter(User.status == 'pending')
+        .filter(_non_admin_role_expr())
         .order_by(User.date_registered.desc())
         .all()
     )

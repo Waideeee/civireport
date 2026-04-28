@@ -1,4 +1,4 @@
-@vite(['resources/css/app.css', 'resources/css/ReportAnalytics.css', 'resources/js/ReportAnalytics.js'])
+@vite(['resources/css/app.css', 'resources/css/ReportAnalytics.css', 'resources/js/app.js', 'resources/js/ReportAnalytics.js'])
 @extends('layouts.app')
 
 @section('content')
@@ -13,6 +13,8 @@
     statusData:     @json(data_get($analytics, 'by_status.values', [])),
     monthLabels:    @json(data_get($analytics, 'monthly.labels', [])),
     trendData:      @json(data_get($analytics, 'monthly.values', [])),
+    serviceRatingLabels: @json(data_get($analytics, 'service_rating_distribution.labels', [])),
+    serviceRatingData:   @json(data_get($analytics, 'service_rating_distribution.values', [])),
     summary: {
       total:       {{ data_get($analytics, 'summary.total', 0) }},
       resolved:    {{ data_get($analytics, 'summary.resolved', 0) }},
@@ -100,10 +102,16 @@
           <canvas id="chartStatus"></canvas>
         </div>
       </div>
-      <div class="chart-card chart-full">
+      <div class="chart-card">
         <div class="chart-title">Monthly Reports Trend</div>
-        <div class="chart-container trend">
+        <div class="chart-container">
           <canvas id="chartTrend"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Service Rating Distribution</div>
+        <div class="chart-container">
+          <canvas id="chartServiceRating"></canvas>
         </div>
       </div>
     </div>

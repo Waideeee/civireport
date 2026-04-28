@@ -21,7 +21,7 @@ def _normalize_status(value: Any) -> str:
     text = _clean_text(value)
     lowered = text.lower()
 
-    if lowered == "in progress":
+    if lowered in ["in progress", "in_progress"]:
         return "In Progress"
     if lowered == "pending":
         return "Pending"
@@ -98,6 +98,7 @@ def build_analytics_snapshot(records: Iterable[dict[str, Any]], today: date | No
     status_counter: Counter[str] = Counter()
     subtype_counter: Counter[str] = Counter()
     urgency_counter: Counter[str] = Counter()
+    service_rating_counter: Counter[int] = Counter()
     monthly_counter: Counter[int] = Counter()
     location_counter: Counter[str] = Counter()
     location_labels: dict[str, str] = {}
@@ -108,6 +109,7 @@ def build_analytics_snapshot(records: Iterable[dict[str, Any]], today: date | No
         subtype = _normalize_label(row.get("complaint_subtype"), fallback="")
         urgency = _normalize_urgency(row.get("urgency_level"))
         location = _normalize_label(row.get("complaint_location"), fallback="")
+        service_rating = row.get("service_rating")
 
         category_counter[category] += 1
         status_counter[status] += 1
@@ -116,6 +118,8 @@ def build_analytics_snapshot(records: Iterable[dict[str, Any]], today: date | No
             subtype_counter[subtype] += 1
         if urgency != "Unknown":
             urgency_counter[urgency] += 1
+        if isinstance(service_rating, int) and 1 <= service_rating <= 5:
+            service_rating_counter[service_rating] += 1
         if location:
             key = _location_key(location)
             location_counter[key] += 1
@@ -156,6 +160,10 @@ def build_analytics_snapshot(records: Iterable[dict[str, Any]], today: date | No
         "monthly": {
             "labels": MONTH_NAMES,
             "values": monthly_values,
+        },
+        "service_rating_distribution": {
+            "labels": [f"STAR_{rating}" for rating in range(1, 6)],
+            "values": [service_rating_counter.get(rating, 0) for rating in range(1, 6)],
         },
         "top_categories": _top_entries(category_counter, limit=5),
         "top_subtypes": _top_entries(subtype_counter, limit=5),

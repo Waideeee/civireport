@@ -15,6 +15,23 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (
+            Auth::check()
+            && strtolower((string) (Auth::user()->role ?? '')) === 'barangay_admin'
+            && (
+                strtolower((string) (Auth::user()->status ?? '')) === 'pending'
+                || empty(Auth::user()->email_verified_at)
+            )
+        ) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/login')->withErrors([
+                'email' => 'Please verify your email before logging in. Check your inbox for the verification link.',
+            ]);
+        }
+
         if (Auth::check() && !Auth::user()->is_active) {
             Auth::logout();
             $request->session()->invalidate();

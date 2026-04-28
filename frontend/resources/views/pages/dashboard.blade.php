@@ -50,9 +50,9 @@
           <div class="stat-label">In Progress Complaints</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="stat-approved">0</div>
-          <div class="stat-label">Approved Complaints</div>
-        </div>
+                <div class="stat-num" id="stat-resolved">0</div>
+                <div class="stat-label">Resolved Complaints</div>
+            </div>
         <div class="stat-card">
           <div class="stat-num" id="stat-rejected">0</div>
           <div class="stat-label">Rejected Complaints</div>
@@ -75,13 +75,13 @@
                 <th>ID</th>
                 <th>Type of Complaint</th>
                 <th>Resident</th>
+                <th>Location</th>
                 <th>Status</th>
                 <th>Date Filed</th>
-                <th></th>
               </tr>
             </thead>
             <tbody id="recent-tbody">
-              <tr><td colspan="6" class="empty-state">No data Available</td></tr>
+              <tr><td colspan="7" class="empty-state">No data Available</td></tr>
             </tbody>
           </table>
         </div>
@@ -142,7 +142,7 @@
       <div class="quick-actions">
         <a href="{{ route('Complaints') }}" class="qa-btn">View All Reports</a>
         <a href="{{ route('UserRecords') }}" class="qa-btn">Approve Accounts</a>
-        <a href="{{ route('UserRecords') }}" class="qa-btn">View Analytics</a>
+        <a href="{{ route('ReportAnalytics') }}" class="qa-btn">View Analytics</a>
       </div>
 
     </div>

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Date, TIMESTAMP
+from sqlalchemy import Boolean, Column, Date, Integer, String, TIMESTAMP
 from database import Base
 
 class User(Base):
@@ -18,4 +18,17 @@ class User(Base):
     approved_at = Column(Date)
     status = Column(String(50), default="pending")
     rejection_reason = Column(String(500))
+    is_verified = Column(Boolean, default=False)
+    verified_at = Column(TIMESTAMP, nullable=True)
+    two_factor_secret = Column(String, nullable=True)
+    two_factor_recovery_codes = Column(String, nullable=True)
+    two_factor_confirmed_at = Column(TIMESTAMP, nullable=True)
+    two_factor_recovery_code = Column(String, nullable=True)
     notified_at = Column(TIMESTAMP, nullable=True)
+    email_verified_at = Column(TIMESTAMP, nullable=True)
+    email_verification_token = Column(String(255), nullable=True)
+    email_verification_token_expires = Column(TIMESTAMP, nullable=True)
+
+    @property
+    def barangay(self):
+        return self.address

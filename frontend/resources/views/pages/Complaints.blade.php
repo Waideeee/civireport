@@ -11,12 +11,12 @@
       <div class="queue-banner">
         <div class="queue card">
           <div class="queue-processing-label">Currently Processing</div>
-          <div class="queue-number" id="queue-number">007</div>
+          <div class="queue-number" id="queue-number">000</div>
           <div class="queue-label">Queue Number</div>
         </div>
         <div class="queue-right">
-          <div class="queue-tag" id="queue-status">In Progress</div>
-          <div class="queue-next" id="queue-next">Next in line: <strong>#008</strong></div>
+          <div class="queue-tag" id="queue-status">--</div>
+          <div class="queue-next" id="queue-next">Next in line: <strong>--</strong></div>
           <div class="queue-updated" id="queue-updated">Updated just now</div>
         </div>
       </div>
@@ -46,10 +46,10 @@
             </div>
             <select id="cr-filter-status" class="cr-select">
               <option value="">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
             </select>
             <select id="cr-filter-type" class="cr-select">
               <option value="">All Types</option>
@@ -131,21 +131,39 @@
             <label>Additional Notes</label>
             <p id="md-notes" class="modal-notes-box"></p>
           </div>
+          
+          {{-- Rejection Reason --}}
           <div class="modal-field" id="md-reject-container" style="display: none;">
             <label style="color:#ef4444;">Reason for Rejection</label>
-            <p id="md-reject-reason" class="modal-notes-box" style="background:#fef2f2; border-color:#fee2e2; color:#991b1b;"></p>
+            <div class="modal-notes-box" style="background:#fef2f2; border: 1px solid #fee2e2;">
+              <p id="md-reject-reason" style="color:#991b1b; margin: 0 !important;"></p>
+            </div>
           </div>
-          <div class="modal-field" id="md-resolution-container" style="display: none; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+
+          {{-- Service Rating --}}
+          <div class="modal-field" id="md-rating-container" style="display: none;">
+            <label style="color:#0284c7;">User Service Rating</label>
+            <div class="modal-notes-box" style="background:#f0f9ff; border: 1px solid #bae6fd; padding: 12px !important;">
+              <div id="md-rating-stars" style="color: #0ea5e9; font-size: 1.2rem; margin-bottom: 4px;"></div>
+              <p id="md-rating-feedback" style="font-size: 0.85rem !important; color: #0369a1 !important; margin: 0 !important; font-weight: 500 !important;"></p>
+            </div>
+          </div>
+
+          {{-- Resolution History --}}
+          <div class="modal-field" id="md-resolution-container" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <label style="color:#16a34a; font-weight: 700; font-size: 0.8rem; margin:0;">Resolution</label>
+              <label style="color:#16a34a; margin: 0;">Resolution Notes</label>
             </div>
-            <p id="md-resolved-notes" style="font-size: 0.85rem; color: #166534; margin-bottom: 10px;"></p>
-            <div id="md-resolved-media"></div>
+            <div class="modal-notes-box" style="background:#f0fdf4; border: 1px solid #bbf7d0; padding: 12px !important;">
+              <p id="md-resolved-notes" style="font-size: 0.85rem !important; color: #166534 !important; margin: 0 0 8px 0 !important; font-weight: 400 !important;"></p>
+              <div id="md-resolved-media"></div>
+            </div>
           </div>
+
           <div class="modal-field">
             <label>Complaint Media</label>
             <div class="modal-media" id="md-media-link"></div>
@@ -153,78 +171,126 @@
         </div>
       </div>
 
+      {{-- Revision Feedback --}}
+      <div class="modal-field modal-section-card" id="md-feedback-container">
+        <div class="modal-section-header modal-section-header--warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 9v4"/>
+            <path d="M12 17h.01"/>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          </svg>
+          <label style="color:#d97706; margin: 0;">Revision Feedback From Resident</label>
+        </div>
+        <div class="modal-notes-box modal-notes-box--warning">
+          <p id="md-revision-feedback" style="color:#92400e; margin: 0 !important;">No revision feedback submitted yet.</p>
+        </div>
+      </div>
+
+      <div class="modal-field modal-section-card" id="md-history-container">
+        <div class="modal-section-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v5h5"/>
+            <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+          <label style="color:#2563eb; margin: 0;">Complaint History</label>
+        </div>
+        <div id="md-history-list" class="history-list"></div>
+      </div>
+
       {{-- AI Recommendation --}}
-      <div class="ai-rec-card" style="margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px;">
-        <div class="ai-rec-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <div class="ai-rec-icon" style="background: #2563eb; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+      <div class="ai-rec-card">
+        <div class="ai-rec-header">
+          <div class="ai-rec-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <path d="M12 16v-4M12 8h.01"/>
             </svg>
           </div>
-          <span class="ai-rec-title" style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">AI Recommendation</span>
-          <span class="ai-rec-tag" style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">Auto-generated</span>
+          <span class="ai-rec-title">AI Recommendation</span>
+          <span class="ai-rec-tag">Auto-generated</span>
         </div>
         <div class="ai-rec-body">
-          <p id="ai-recommendation-content" style="font-size: 0.9rem; margin: 0; line-height: 1.5; color: #1e3a8a;"></p>
+          <p id="ai-recommendation-content" class="ai-rec-summary"></p>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      {{-- Download: calls downloadComplaint() which uses currentComplaint data --}}
       <button class="btn btn-download" onclick="downloadComplaint()">⬇ Download</button>
-      {{-- Reject: opens reject confirmation modal --}}
       <button class="btn btn-danger" id="btn-reject" onclick="showComplaintRejectModal()">Reject</button>
-      <button class="btn btn-warning" id="btn-inprogress" onclick="markInProgress()" style="background:#f59e0b; color:white; border:none; display:none;">Mark In Progress</button>
-      <button class="btn btn-success" id="btn-approve" onclick="showComplaintApproveModal()" style="display:none;">Resolve</button>
+      <button class="btn btn-warning" id="btn-inprogress" onclick="showComplaintInProgressModal()" style="background:#f59e0b; color:white; border:none; display:none;">Mark In Progress</button>
+      <div id="btn-waiting-user" style="display:none; font-size: 0.85rem; color: #6b7280; font-style: italic; background: #f3f4f6; padding: 8px 16px; border-radius: 6px;">Waiting for resident rating...</div>
     </div>
   </div>
 </div>
 
 {{-- ═══════════════════════════════════════════════════════ --}}
-{{-- COMPLAINT APPROVE CONFIRMATION MODAL                    --}}
+{{-- MARK AS IN PROGRESS MODAL                               --}}
 {{-- ═══════════════════════════════════════════════════════ --}}
-<div class="cr-modal-overlay" id="complaint-approve-overlay">
+<div class="cr-modal-overlay" id="complaint-inprogress-overlay">
   <div class="cr-confirm-modal">
-    <div class="cr-confirm-icon cr-confirm-icon--approve">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-        <polyline points="22 4 12 14.01 9 11.01"/>
+    <div class="cr-confirm-icon cr-confirm-icon--approve" style="background: #fffbeb; border-color: #fef3c7;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
       </svg>
     </div>
-    <div class="cr-confirm-title">Resolve Complaint</div>
+    <div class="cr-confirm-title" style="color: #92400e;">Mark In Progress</div>
     <div class="cr-confirm-message">
-      Are you sure you want to resolve complaint
-      <strong id="approve-complaint-id"></strong>?
-      The status will be updated to <em>Resolved</em>.
+      Provide action taken details for complaint
+      <strong id="inprogress-complaint-id"></strong>.
     </div>
 
     <div class="cr-confirm-field" style="margin-top: 12px; text-align: left;">
-      <label class="cr-confirm-label" for="complaint-action-notes">
-        Resolution Notes <span class="cr-confirm-required">*</span>
+      <label class="cr-confirm-label" for="complaint-inprogress-notes">
+        Action Taken <span class="cr-confirm-required">*</span>
       </label>
       <textarea
-        id="complaint-action-notes"
+        id="complaint-inprogress-notes"
         class="cr-confirm-textarea"
-        placeholder="Detail how this complaint will be or was resolved..."
+        placeholder="Explain what steps have been taken or how the complaint is resolved..."
         rows="3"
       ></textarea>
-      <div class="cr-confirm-error" id="complaint-action-error" style="display:none; color:red; font-size:0.8rem; margin-top:4px;">
-        Please provide resolution notes.
+      <div class="cr-confirm-error" id="complaint-inprogress-error" style="display:none; color:red; font-size:0.8rem; margin-top:4px;">
+        Notes are required to notify the user.
       </div>
     </div>
 
     <div class="cr-confirm-field" style="margin-top: 12px; text-align: left;">
-      <label class="cr-confirm-label" for="complaint-action-proof">
+      <label class="cr-confirm-label" for="complaint-inprogress-proof">
         Attach Photo Proof <span style="font-weight: normal; color: #9ca3af;">(Optional)</span>
       </label>
-      <input type="file" id="complaint-action-proof" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.85rem;" />
+      <input type="file" id="complaint-inprogress-proof" accept="image/*" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.85rem;" />
     </div>
     <div class="cr-confirm-actions">
-      <button class="cr-btn cr-btn-ghost" onclick="closeComplaintApproveModal()">Cancel</button>
-      <button class="cr-btn cr-btn-approve" id="complaint-approve-btn" onclick="submitComplaintApprove()">
-        <span id="c-approve-text">Yes, Resolve</span>
-        <span id="c-approve-spinner" style="display:none;">Processing…</span>
+      <button class="cr-btn cr-btn-ghost" onclick="closeComplaintInProgressModal()">Cancel</button>
+      <button class="cr-btn cr-btn-approve" id="complaint-inprogress-btn" onclick="showComplaintInProgressConfirmModal()" style="background: #d97706; border-color: #d97706;">
+        Continue
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="cr-modal-overlay" id="complaint-inprogress-confirm-overlay">
+  <div class="cr-confirm-modal">
+    <div class="cr-confirm-icon cr-confirm-icon--approve" style="background: #fffbeb; border-color: #fef3c7;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="cr-confirm-title" style="color: #92400e;">Confirm In Progress</div>
+    <div class="cr-confirm-message">
+      Are you sure you want this to be marked as In Progress?
+    </div>
+    <div class="cr-confirm-error" id="complaint-inprogress-confirm-error" style="display:none;">
+      Failed to mark complaint as in progress.
+    </div>
+    <div class="cr-confirm-actions">
+      <button class="cr-btn cr-btn-ghost" onclick="closeComplaintInProgressConfirmModal()">Cancel</button>
+      <button class="cr-btn cr-btn-approve" id="complaint-inprogress-confirm-btn" onclick="submitComplaintInProgress()" style="background: #d97706; border-color: #d97706;">
+        <span id="c-inprogress-text">Confirm</span>
+        <span id="c-inprogress-spinner" style="display:none;">Notifying Resident…</span>
       </button>
     </div>
   </div>

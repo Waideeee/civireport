@@ -7,7 +7,7 @@ class Emergency(Base):
 
     emergency_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer)
-    location = Column(String(500))
+    address = Column(String(500))
     status = Column(String(50), default="pending") # pending, acknowledged, resolved
     created_at = Column(TIMESTAMP, server_default=func.now())
     resolved_at = Column(TIMESTAMP, nullable=True)

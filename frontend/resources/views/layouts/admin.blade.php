@@ -12,7 +12,7 @@
            'resources/css/Announcements.css', 
            'resources/css/AuditLog.css', 
            'resources/css/Complaints.css']) 
-    <!-- @vite(['resources/js/app.js', 'resources/js/dashboard.js']) -->
+    @vite(['resources/js/app.js', 'resources/js/sidebar.js', 'resources/js/dashboard.js'])
 
     @stack('styles')
 </head>
@@ -21,7 +21,6 @@
     @include('partials.sidebar')
 
     @yield('content')
-     @vite(['resources/js/dashboard.js']) 
     @stack('scripts')
 
 </body>

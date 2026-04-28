@@ -4,7 +4,7 @@ from datetime import datetime
 
 class EmergencyBase(BaseModel):
     user_id: int
-    location: str
+    address: str
     status: Optional[str] = "pending"
     notes: Optional[str] = None
     resolution_notes: Optional[str] = None
@@ -14,8 +14,13 @@ class EmergencyCreate(EmergencyBase):
 
 class EmergencyResponse(EmergencyBase):
     emergency_id: int
-    created_at: Optional[datetime] = None
-    resolved_at: Optional[datetime] = None
+    created_at: Optional[str] = None
+    resolved_at: Optional[str] = None
+    reporter_name: Optional[str] = None
+    reporter_contact: Optional[str] = None
+    user_name: Optional[str] = None
+    contact_num: Optional[str] = None
+    profile_photo_path: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -19,7 +19,9 @@ class AnnouncementUpdate(AnnouncementBase):
     pass
 
 class AnnouncementResponse(AnnouncementBase):
-    id: int
+    announcement_id: int
+    creator_name: Optional[str] = None
+    creator_role: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -3,7 +3,22 @@
 let notificationAudioCtx = null;
 let knownNotificationIds = new Set(); // Track what we've already chimed for
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Don't poll for superadmins as they don't have complaint/user notification access
+    if (window.CiviReport?.user?.role === 'superadmin') {
+        console.log("Skipping notification polling for Super Admin.");
+        return;
+    }
+
     // Initial fetch
     pollNotifications();
 
@@ -37,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const listItems = document.querySelectorAll('.notif-item');
             for (let item of listItems) {
                 // We'll trigger all their click handlers silently or just clear the ui
-                // Actually, the easiest way is to hit the API for all current notifications
                 item.click();
             }
             document.getElementById('notif-dropdown').classList.remove('open');
@@ -145,8 +159,8 @@ function updateDashboardBell(notifs) {
             item.innerHTML = `
                 <div class="notif-dot"></div>
                 <div>
-                    <div class="notif-text"><strong>New Complaint</strong> filed by ${n.resident_name}</div>
-                    <div class="notif-time">${n.created_at}</div>
+                    <div class="notif-text"><strong>New Complaint</strong> filed by ${escapeHtml(n.resident_name)}</div>
+                    <div class="notif-time">${escapeHtml(n.created_at)}</div>
                 </div>
             `;
         } else {
@@ -154,8 +168,8 @@ function updateDashboardBell(notifs) {
             item.innerHTML = `
                 <div class="notif-dot" style="background: #059669;"></div>
                 <div>
-                    <div class="notif-text"><strong>New User Registration</strong> by ${n.full_name}</div>
-                    <div class="notif-time">${n.date_registered}</div>
+                    <div class="notif-text"><strong>New User Registration</strong> by ${escapeHtml(n.full_name)}</div>
+                    <div class="notif-time">${escapeHtml(n.date_registered)}</div>
                 </div>
             `;
         }
@@ -175,7 +189,6 @@ async function handleNotificationClick(endpointType, id, redirectUrl) {
         window.location.href = redirectUrl + '?view=' + id;
     } catch (e) {
         console.error("Mark Notified Error:", e);
-        // Redirect anyway
         window.location.href = redirectUrl + '?view=' + id;
     }
 }

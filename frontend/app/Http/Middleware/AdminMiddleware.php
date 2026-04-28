@@ -10,7 +10,7 @@ class AdminMiddleware
 {
     /**
      * Handle an incoming request.
-     * Ensures the authenticated user has the 'admin' role.
+     * Ensures the authenticated user has an elevated admin role.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -18,8 +18,9 @@ class AdminMiddleware
             return redirect('/login');
         }
 
-        if (strtolower(auth()->user()->role) !== 'admin') {
-            abort(403, 'Unauthorized. Admin access only.');
+        $role = strtolower(auth()->user()->role ?? '');
+        if (! in_array($role, ['admin', 'barangay_admin', 'superadmin'], true)) {
+            abort(403, 'Unauthorized. Access restricted to administrators.');
         }
 
         return $next($request);

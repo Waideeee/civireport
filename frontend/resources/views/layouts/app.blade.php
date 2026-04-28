@@ -17,10 +17,18 @@
        ])
     @vite([
     'resources/js/app.js',
+    'resources/js/sidebar.js',
     'resources/js/emergency-alert.js',
     'resources/js/global-notifications.js'
 ])
 
+    <script>
+        window.CiviReport = {
+            user: {
+                role: '{{ strtolower(auth()->user()->role ?? "") }}'
+            }
+        };
+    </script>
     @livewireStyles
     @stack('styles')
 </head>

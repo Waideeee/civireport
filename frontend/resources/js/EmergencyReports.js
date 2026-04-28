@@ -3,6 +3,24 @@ let currentPage = 1;
 const rowsPerPage = 10;
 let filteredEmergencies = [];
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function buildStorageUrl(rawPath) {
+    return String(rawPath || '')
+        .replace(/\\/g, '/')
+        .split('/')
+        .filter(Boolean)
+        .map(segment => encodeURIComponent(segment))
+        .join('/');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     fetchEmergencies();
 
@@ -75,13 +93,13 @@ function renderTable() {
                 <td>#${e.emergency_id}</td>
                 <td>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        ${e.profile_photo_path ? `<img src="/storage/${e.profile_photo_path}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">` : `<div style="width:24px; height:24px; border-radius:50%; background:#dbeafe; color:#1e40af; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">${e.user_name.substring(0,2).toUpperCase()}</div>`}
-                        ${e.user_name}
+                        ${e.profile_photo_path ? `<img src="/storage/${buildStorageUrl(e.profile_photo_path)}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">` : `<div style="width:24px; height:24px; border-radius:50%; background:#dbeafe; color:#1e40af; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold;">${escapeHtml(e.user_name.substring(0,2).toUpperCase())}</div>`}
+                        ${escapeHtml(e.user_name)}
                     </div>
                 </td>
-                <td><div class="notes-cell" title="${e.location}">${e.location}</div></td>
-                <td>${new Date(e.created_at).toLocaleString()}</td>
-                <td><span class="badge ${badgeClass}">${e.status.toUpperCase()}</span></td>
+                <td><div class="notes-cell" title="${escapeHtml(e.location)}">${escapeHtml(e.location)}</div></td>
+                <td>${escapeHtml(new Date(e.created_at).toLocaleString())}</td>
+                <td><span class="badge ${badgeClass}">${escapeHtml(e.status.toUpperCase())}</span></td>
                 <td><button class="btn btn-ghost" style="padding:4px 8px; font-size:11px;">View</button></td>
             `;
             tbody.appendChild(tr);

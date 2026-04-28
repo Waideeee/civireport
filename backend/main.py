@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
@@ -16,24 +16,20 @@ from routes.reportanalytics import router as reportanalytics_router
 from routes.announcement import router as announcement_router
 from routes.emergencies import router as emergencies_router
 from routes.notifications import router as notifications_router
-from database import engine, get_db
+from routes.superadmin import router as superadmin_router
+from routes.admin_registration import router as admin_registration_router
+from routes.auth import router as auth_router
+from database import get_db
 from models.user import User
 from models.complaint import Complaint
 from models.complaint_media import Complaint_media
 from models.announcement import Announcement
 from models.emergency import Emergency
+from models.service_rating import ServiceRating
+from security import require_admin_actor, require_internal_api_key, require_superadmin_actor
+from schema_alignment import ensure_user_verification_columns, sync_users_user_id_sequence, auto_resolve_rated_complaints
 
 app = FastAPI(title="CiviReport API")
-
-from sqlalchemy import text
-from database import engine
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS notified_at TIMESTAMP NULL;"))
-        conn.execute(text("ALTER TABLE complaint ADD COLUMN IF NOT EXISTS notified_at TIMESTAMP NULL;"))
-        conn.commit()
-except Exception as e:
-    print(f"Migration error: {e}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,14 +44,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(users_router)
-app.include_router(dashboard_router)
-app.include_router(complaints_router)
-app.include_router(auditlogs_router)
-app.include_router(reportanalytics_router)
-app.include_router(announcement_router)
-app.include_router(emergencies_router)
-app.include_router(notifications_router)
+app.include_router(users_router, dependencies=[Depends(require_internal_api_key)])
+app.include_router(
+    dashboard_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    complaints_router,
+    dependencies=[Depends(require_internal_api_key)],
+)
+app.include_router(
+    auditlogs_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    reportanalytics_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    announcement_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    emergencies_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    notifications_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_admin_actor)],
+)
+app.include_router(
+    superadmin_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_superadmin_actor)],
+)
+app.include_router(
+    admin_registration_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_superadmin_actor)],
+)
+app.include_router(
+    auth_router,
+    dependencies=[Depends(require_internal_api_key)],
+)
+
+from scheduler import start_scheduler, stop_scheduler
+
+@app.on_event("startup")
+def startup_event():
+    try:
+        ensure_user_verification_columns()
+        sync_users_user_id_sequence()
+        auto_resolve_rated_complaints()
+    except Exception as exc:
+        print(f"Startup schema alignment error: {exc}")
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    stop_scheduler()
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
@@ -64,7 +110,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 def root():
     return {"message": "CiviReport FastAPI is running!"}
 
-@app.get("/test")
+@app.get("/test", dependencies=[Depends(require_internal_api_key)])
 def test():
     db = next(get_db())
     users = db.query(User).all()

@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const statusData       = bladeAnalytics.statusData     || [];
   const monthLabels      = bladeAnalytics.monthLabels    || [];
   const trendData        = bladeAnalytics.trendData      || [];
+  const serviceRatingLabels = bladeAnalytics.serviceRatingLabels || [];
+  const serviceRatingData   = bladeAnalytics.serviceRatingData   || [];
 
   let analyticsData = null;
   let insightData   = null;
@@ -54,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     renderCategoryChart(categoryLabels, categoryData);
     renderStatusChart(statusLabels, statusData, (bladeAnalytics.summary || {}).total || null);
     renderTrendChart(monthLabels, trendData);
+    renderServiceRatingChart(serviceRatingLabels, serviceRatingData);
   }
 
   renderInsightLoading();
@@ -83,6 +86,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (chartEnabled && data.by_category) renderCategoryChart(data.by_category.labels || [], data.by_category.values || []);
         if (chartEnabled && data.by_status)   renderStatusChart(data.by_status.labels || [], data.by_status.values || [], data.summary?.total ?? null);
         if (chartEnabled && data.monthly)     renderTrendChart(data.monthly.labels || [], data.monthly.values || []);
+        if (chartEnabled && data.service_rating_distribution) {
+          renderServiceRatingChart(
+            data.service_rating_distribution.labels || [],
+            data.service_rating_distribution.values || []
+          );
+        }
       })
       .catch(error => {
         console.error('Failed to refresh analytics data:', error);
@@ -241,6 +250,59 @@ document.addEventListener('DOMContentLoaded', function () {
         scales: {
           x: { grid: { display: false } },
           y: { grid: { color: '#f3f4f6' }, ticks: { precision: 0, stepSize: 1 }, beginAtZero: true },
+        },
+      },
+    });
+  }
+
+  function renderServiceRatingChart(labels, values) {
+    if (!chartEnabled) return;
+    const canvas = document.getElementById('chartServiceRating');
+    if (!canvas) return;
+    destroyChart('chartServiceRating');
+
+    const normalizedLabels = labels.map((label, index) => {
+      const rating = String(label || '').replace('STAR_', '') || String(index + 1);
+      const count = values[index] || 0;
+      return `STAR ${rating}: ${count}`;
+    });
+
+    const ctx = canvas.getContext('2d');
+    chartInstances['chartServiceRating'] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: normalizedLabels,
+        datasets: [{
+          label: 'Rated complaints',
+          data: values,
+          backgroundColor: ['#f59e0b', '#fbbf24', '#facc15', '#84cc16', '#22c55e'],
+          borderRadius: 8,
+          borderSkipped: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: item => ` ${item.label} complaints`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              callback: (_, index) => `STAR ${index + 1}`,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f3f4f6' },
+            ticks: { precision: 0, stepSize: 1 },
+          },
         },
       },
     });

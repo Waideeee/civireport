@@ -30,8 +30,13 @@ class ComplaintController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $status = $request->input('complaint_status', $request->input('status'));
+        $request->merge([
+            'status' => $status,
+        ]);
+
         $request->validate([
-            'status' => 'required|in:pending,in progress,resolved,rejected',
+            'status' => 'required|in:in_progress,rejected',
             'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
             'action_proof' => 'nullable|string',
             'action_proof_name' => 'nullable|string',
@@ -40,7 +45,7 @@ class ComplaintController extends Controller
 
         $result = $this->api->updateComplaintStatus(
             $id, 
-            $request->status, 
+            $status, 
             auth()->id(), 
             $request->rejection_reason,
             $request->action_proof,
@@ -48,27 +53,53 @@ class ComplaintController extends Controller
             $request->resolved_notes
         );
 
-        // Always return JSON so the frontend AJAX handler can read it
-        if ($result && !isset($result['error'])) {
+        if (($result['successful'] ?? false) === true) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated!'
-            ]);
+                'message' => data_get($result, 'data.message', 'Status updated!'),
+                'data' => $result['data'] ?? null,
+            ], $result['status'] ?? 200);
+        }
+
+        $message = data_get($result, 'data.detail');
+        if (is_array($message)) {
+            $message = collect($message)
+                ->map(function ($entry) {
+                    if (is_array($entry)) {
+                        return $entry['msg'] ?? json_encode($entry);
+                    }
+
+                    return (string) $entry;
+                })
+                ->implode(' ');
         }
 
         return response()->json([
             'success' => false,
-            'message' => $result['error'] ?? 'Failed to update complaint status.'
-        ], 422);
+            'message' => $message ?: data_get($result, 'data.error', 'Failed to update complaint status.'),
+            'errors' => data_get($result, 'data.detail'),
+        ], $result['status'] ?? 422);
     }
 
     public function downloadComplaint($id)
     {
         $complaint = $this->api->getComplaint($id);
+        $history = collect($this->api->getAuditLogs())
+            ->filter(fn ($entry) => (int) ($entry['complaint_id'] ?? 0) === (int) $id)
+            ->map(fn ($entry) => [
+                'admin_name' => $entry['admin_name'] ?? $entry['user_full_name'] ?? $entry['user_name'] ?? 'System',
+                'audit_date' => $entry['audit_date'] ?? $entry['created_at'] ?? '',
+                'old_status' => $entry['old_status'] ?? '',
+                'new_status' => $entry['new_status'] ?? '',
+                'action_notes' => $entry['action_notes'] ?? '',
+            ])
+            ->values()
+            ->all();
 
-        $pdf = Pdf::loadView('pdf.complaint', compact('complaint'))
+        $pdf = Pdf::loadView('pdf.complaint', compact('complaint', 'history'))
+            ->setPaper('a4', 'portrait')
             ->setOptions([
-                'isRemoteEnabled' => true, // 🔥 para gumana CSS/images
+                'isRemoteEnabled' => true,
                 'defaultFont' => 'sans-serif'
             ]);
 

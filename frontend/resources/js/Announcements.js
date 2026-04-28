@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
           <div class="announcement-footer" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Posted on ${formatDate(a.post_date)}</span>
-            <button class="btn-edit btn-sm" style="flex: 0" data-id="${a.id}">Edit</button>
+            <button class="btn-edit btn-sm" style="flex: 0" data-id="${a.announcement_id}">Edit</button>
           </div>
         </div>
       `;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function openEditModal(id) {
-    const a = announcements.find(x => x.id == id);
+    const a = announcements.find(x => x.announcement_id == id);
     if (!a) return;
 
     const modal = document.getElementById('modal-edit');
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modal-edit');
     const id = modal.dataset.editId;
 
-    const a = announcements.find(x => x.id == id);
+    const a = announcements.find(x => x.announcement_id == id);
     if (!a) return;
 
     const payload = {

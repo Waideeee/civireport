@@ -24,7 +24,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            $role = strtolower(Auth::user()->role);
+            if ($role === 'superadmin') {
+                return redirect('/superadmin/dashboard');
+            } elseif (in_array($role, ['admin', 'barangay_admin'], true)) {
+                return redirect('/dashboard');
+            }
+
+            return redirect('/');
         }
 
         // Failed login

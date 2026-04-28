@@ -18,6 +18,8 @@ export default defineConfig({
                 'resources/js/global-notifications.js',
                 'resources/css/emergency-alert.css',
                 'resources/js/emergency-alert.js',
+                'resources/css/superadmin.css',
+                'resources/js/superadmin-admins.js',
             ],
             refresh: true,
         }),

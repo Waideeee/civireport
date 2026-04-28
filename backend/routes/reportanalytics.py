@@ -17,6 +17,7 @@ def _load_analytics_snapshot(db: Session):
             Complaint.complaint_location,
             Complaint.complaint_status,
             Complaint.urgency_level,
+            Complaint.service_rating,
             Complaint.created_at,
         )
         .all()
@@ -31,6 +32,7 @@ def _load_analytics_snapshot(db: Session):
             "complaint_location": row.complaint_location,
             "complaint_status": row.complaint_status,
             "urgency_level": row.urgency_level,
+            "service_rating": row.service_rating,
             "created_at": row.created_at,
         }
         for row in rows
@@ -46,6 +48,7 @@ def get_analytics(db: Session = Depends(get_db)):
         "by_category": snapshot["by_category"],
         "by_status": snapshot["by_status"],
         "monthly": snapshot["monthly"],
+        "service_rating_distribution": snapshot["service_rating_distribution"],
     }
 
 
