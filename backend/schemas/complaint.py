@@ -2,6 +2,12 @@ from pydantic import BaseModel
 from typing import Literal, Optional
 from datetime import datetime
 
+
+class ServiceFeedbackResponse(BaseModel):
+    rating: int
+    comment: Optional[str] = None
+    submitted_at: Optional[str] = None
+
 class ComplaintBase(BaseModel):
     user_id: int
     complaint_type: str
@@ -46,6 +52,7 @@ class ComplaintResponse(ComplaintBase):
     media: list[dict] = []
     history: list[dict] = []
     service_rating: Optional[int] = None
+    service_feedback: Optional[ServiceFeedbackResponse] = None
 
     class Config:
         from_attributes = True

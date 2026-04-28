@@ -116,6 +116,14 @@ def complaint_to_dict(c: Complaint, u: User | None):
                 "media_type": media.media_type,
             })
 
+    service_feedback = None
+    if c.service_rating is not None:
+        service_feedback = {
+            "rating": c.service_rating,
+            "comment": (c.revision_feedback or "").strip() or None,
+            "submitted_at": _format_timestamp(c.updated_at or c.created_at),
+        }
+
     return {
         "complaint_id": c.complaint_id,
         "complaint_date": _format_timestamp(c.complaint_date),
@@ -143,6 +151,7 @@ def complaint_to_dict(c: Complaint, u: User | None):
         "ai_recommendation": c.ai_recommendation or "",
         "revision_feedback": c.revision_feedback or "",
         "service_rating": c.service_rating,
+        "service_feedback": service_feedback,
     }
 
 

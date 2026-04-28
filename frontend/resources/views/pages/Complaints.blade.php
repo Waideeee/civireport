@@ -145,7 +145,8 @@
             <label style="color:#0284c7;">User Service Rating</label>
             <div class="modal-notes-box" style="background:#f0f9ff; border: 1px solid #bae6fd; padding: 12px !important;">
               <div id="md-rating-stars" style="color: #0ea5e9; font-size: 1.2rem; margin-bottom: 4px;"></div>
-              <p id="md-rating-feedback" style="font-size: 0.85rem !important; color: #0369a1 !important; margin: 0 !important; font-weight: 500 !important;"></p>
+              <p id="md-rating-feedback" style="font-size: 0.85rem !important; color: #0369a1 !important; margin: 0 !important; font-weight: 500 !important; font-style: italic !important;"></p>
+              <p id="md-rating-submitted" style="font-size: 0.78rem !important; color: #0369a1 !important; margin: 6px 0 0 0 !important; font-weight: 500 !important;"></p>
             </div>
           </div>
 

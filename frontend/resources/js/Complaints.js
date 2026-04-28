@@ -42,6 +42,28 @@ document.addEventListener('DOMContentLoaded', function () {
       .join(' ');
   }
 
+  function formatFeedbackTimestamp(value) {
+    if (!value) return '';
+    const normalized = String(value).includes('T')
+      ? String(value)
+      : String(value).replace(' ', 'T');
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const datePart = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
+    const timePart = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    return `Submitted: ${datePart} - ${timePart}`;
+  }
+
   let complaints = [];
   let auditLogs = [];
   let filteredData = [];
@@ -116,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ai_recommendation: complaint.ai_recommendation || '',
       revision_feedback: complaint.revision_feedback || '',
       service_rating: complaint.service_rating,
+      service_feedback: complaint.service_feedback || null,
     };
   }
 
@@ -238,14 +261,24 @@ document.addEventListener('DOMContentLoaded', function () {
       complaint.revision_feedback || 'No revision feedback submitted yet.';
 
     const ratingContainer = document.getElementById('md-rating-container');
+    const ratingFeedback = document.getElementById('md-rating-feedback');
+    const ratingSubmitted = document.getElementById('md-rating-submitted');
     if (complaint.service_rating) {
+      const serviceFeedback = complaint.service_feedback || {};
+      const feedbackComment = (serviceFeedback.comment || '').trim();
+      const submittedLabel = formatFeedbackTimestamp(serviceFeedback.submitted_at);
+
       ratingContainer.style.display = 'block';
       document.getElementById('md-rating-stars').textContent = '★'.repeat(complaint.service_rating) + '☆'.repeat(5 - complaint.service_rating);
-      document.getElementById('md-rating-feedback').textContent = 'Resident submitted a service rating.';
+      ratingFeedback.textContent = feedbackComment ? `"${feedbackComment}"` : 'No written feedback provided.';
+      ratingSubmitted.textContent = submittedLabel;
+      ratingSubmitted.style.display = submittedLabel ? 'block' : 'none';
     } else {
       ratingContainer.style.display = complaint.status.toLowerCase() === 'resolved' ? 'block' : 'none';
       document.getElementById('md-rating-stars').textContent = '☆☆☆☆☆';
-      document.getElementById('md-rating-feedback').textContent = 'No rating submitted yet.';
+      ratingFeedback.textContent = 'No rating submitted yet.';
+      ratingSubmitted.textContent = '';
+      ratingSubmitted.style.display = 'none';
     }
 
     const resolutionContainer = document.getElementById('md-resolution-container');
