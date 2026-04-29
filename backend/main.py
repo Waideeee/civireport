@@ -17,6 +17,7 @@ from routes.announcement import router as announcement_router
 from routes.emergencies import router as emergencies_router
 from routes.notifications import router as notifications_router
 from routes.superadmin import router as superadmin_router
+from routes.superadmin_auditlog import router as superadmin_auditlog_router
 from routes.admin_registration import router as admin_registration_router
 from routes.auth import router as auth_router
 from database import get_db
@@ -27,7 +28,12 @@ from models.announcement import Announcement
 from models.emergency import Emergency
 from models.service_rating import ServiceRating
 from security import require_admin_actor, require_internal_api_key, require_superadmin_actor
-from schema_alignment import ensure_user_verification_columns, sync_users_user_id_sequence, auto_resolve_rated_complaints
+from schema_alignment import (
+    auto_resolve_rated_complaints,
+    ensure_superadmin_audit_log_columns,
+    ensure_user_verification_columns,
+    sync_users_user_id_sequence,
+)
 
 app = FastAPI(title="CiviReport API")
 
@@ -78,6 +84,10 @@ app.include_router(
     dependencies=[Depends(require_internal_api_key), Depends(require_superadmin_actor)],
 )
 app.include_router(
+    superadmin_auditlog_router,
+    dependencies=[Depends(require_internal_api_key), Depends(require_superadmin_actor)],
+)
+app.include_router(
     admin_registration_router,
     dependencies=[Depends(require_internal_api_key), Depends(require_superadmin_actor)],
 )
@@ -92,6 +102,7 @@ from scheduler import start_scheduler, stop_scheduler
 def startup_event():
     try:
         ensure_user_verification_columns()
+        ensure_superadmin_audit_log_columns()
         sync_users_user_id_sequence()
         auto_resolve_rated_complaints()
     except Exception as exc:

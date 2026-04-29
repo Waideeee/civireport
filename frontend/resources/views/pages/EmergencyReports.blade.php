@@ -51,7 +51,6 @@
                 <th>LOCATION</th>
                 <th>REPORTED AT</th>
                 <th>STATUS</th>
-                <th>ACTIONS</th>
               </tr>
             </thead>
             <tbody id="emergency-tbody"></tbody>
@@ -104,6 +103,7 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-download" onclick="downloadEmergencyReport()">Download PDF</button>
       <button class="btn btn-danger" id="btn-false-alarm" onclick="showEmergencyFalseAlarmModal()">False Alarm</button>
       <button class="btn btn-success" id="btn-resolve" onclick="showEmergencyResolveModal()">Mark as Resolved</button>
     </div>
@@ -194,5 +194,7 @@
     </div>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 @endsection

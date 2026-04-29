@@ -52,12 +52,16 @@
         <div class="stat-label">Total Reports</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" id="stat-resolved">{{ data_get($analytics, 'summary.resolved', 0) }}</div>
-        <div class="stat-label">Resolved</div>
-      </div>
-      <div class="stat-card">
         <div class="stat-num" id="stat-pending">{{ data_get($analytics, 'summary.pending', 0) }}</div>
         <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-in-progress">{{ data_get($analytics, 'summary.in_progress', 0) }}</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-resolved">{{ data_get($analytics, 'summary.resolved', 0) }}</div>
+        <div class="stat-label">Resolved</div>
       </div>
       <div class="stat-card">
         <div class="stat-num" id="stat-rate">

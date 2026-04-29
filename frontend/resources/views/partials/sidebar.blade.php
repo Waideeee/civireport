@@ -17,7 +17,7 @@
         Dashboard
       </a>
       <a @class(['nav-item', 'active' => request()->routeIs('superadmin.admins')]) href="{{ route('superadmin.admins') }}">Barangay Admins</a>
-      <a @class(['nav-item', 'active' => request()->routeIs('superadmin.audit_log')]) href="{{ route('superadmin.audit_log') }}">System Logs</a>
+      <a @class(['nav-item', 'active' => request()->routeIs('superadmin.audit_log')]) href="{{ route('superadmin.audit_log') }}">Audit Logs</a>
     @else
       <p class="sidebar-section-label">MAIN</p>
       <a @class(['nav-item', 'active' => request()->routeIs('dashboard')]) href="{{ route('dashboard') }}">
@@ -41,12 +41,15 @@
 
   <div class="sidebar-footer">
     <div class="sidebar-user-profile" onclick="window.location.href='{{ route('profile.show') }}'">
+        @php
+            $name = trim((string) (Auth::user()->name ?? Auth::user()->user_name ?? 'Admin'));
+            $firstName = strtok($name, ' ') ?: $name;
+        @endphp
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-            <img class="profile-photo" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+            <img class="profile-photo" src="{{ Auth::user()->profile_photo_url }}" alt="{{ $firstName }}" />
         @else
             <div class="profile-initial">
                 @php
-                    $name = Auth::user()->name ?? 'Admin';
                     $words = explode(' ', $name);
                     $initials = count($words) > 1 ? substr($words[0], 0, 1) . substr($words[1], 0, 1) : substr($name, 0, 2);
                 @endphp
@@ -54,7 +57,7 @@
             </div>
         @endif
         <div class="profile-details">
-            <span class="sidebar-username">{{ Auth::user()->user_name ?? 'Super Admin' }}</span>
+            <span class="sidebar-username">{{ $firstName }}</span>
             <span class="sidebar-role">{{ Auth::user()->role === 'superadmin' ? 'Super Admin' : 'Barangay Admin' }}</span>
         </div>
     </div>

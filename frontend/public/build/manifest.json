@@ -1,6 +1,6 @@
 {
   "resources/css/AuditLog.css": {
-    "file": "assets/AuditLog-gu_Utbcd.css",
+    "file": "assets/AuditLog-CDdBAU99.css",
     "src": "resources/css/AuditLog.css",
     "isEntry": true,
     "name": "AuditLog",
@@ -18,7 +18,7 @@
     ]
   },
   "resources/css/ReportAnalytics.css": {
-    "file": "assets/ReportAnalytics-CHS6ytQv.css",
+    "file": "assets/ReportAnalytics-DfKd8hGM.css",
     "src": "resources/css/ReportAnalytics.css",
     "isEntry": true,
     "name": "ReportAnalytics",
@@ -27,7 +27,7 @@
     ]
   },
   "resources/css/UserRecords.css": {
-    "file": "assets/UserRecords-H-wlkLUC.css",
+    "file": "assets/UserRecords-DVUtq-0U.css",
     "src": "resources/css/UserRecords.css",
     "isEntry": true,
     "name": "UserRecords",
@@ -36,7 +36,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BY2wjgvz.css",
+    "file": "assets/app-B7gdORWt.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -78,13 +78,13 @@
     "isEntry": true
   },
   "resources/js/ReportAnalytics.js": {
-    "file": "assets/ReportAnalytics-CCdikylC.js",
+    "file": "assets/ReportAnalytics-CrJt3gp3.js",
     "name": "ReportAnalytics",
     "src": "resources/js/ReportAnalytics.js",
     "isEntry": true
   },
   "resources/js/UserRecords.js": {
-    "file": "assets/UserRecords-CQzLTIQ6.js",
+    "file": "assets/UserRecords-Dkjj3gaN.js",
     "name": "UserRecords",
     "src": "resources/js/UserRecords.js",
     "isEntry": true
@@ -108,7 +108,7 @@
     "isEntry": true
   },
   "resources/js/superadmin-admins.js": {
-    "file": "assets/superadmin-admins-DE3oR4Ax.js",
+    "file": "assets/superadmin-admins-ZYmrnF_s.js",
     "name": "superadmin-admins",
     "src": "resources/js/superadmin-admins.js",
     "isEntry": true

@@ -209,8 +209,15 @@ Route::middleware([
     Route::get('/audit-log', [App\Http\Controllers\Admin\SuperAdminController::class, 'auditLog'])
         ->name('superadmin.audit_log');
 
-    Route::get('/proxy/audit-logs', function(App\Services\FastApiService $api) {
-        return response()->json($api->getSuperAdminAuditLogs());
+    Route::get('/proxy/audit-logs', function(\Illuminate\Http\Request $request, App\Services\FastApiService $api) {
+        return response()->json($api->getSuperAdminAuditLogs($request->only([
+            'page',
+            'per_page',
+            'search',
+            'date_from',
+            'date_to',
+            'status',
+        ])));
     })->name('superadmin.proxy.audit_logs');
 
     Route::patch('/users/{id}/deactivate', [App\Http\Controllers\Admin\SuperAdminController::class, 'deactivate'])
@@ -218,4 +225,7 @@ Route::middleware([
 
     Route::patch('/users/{id}/activate', [App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])
         ->name('superadmin.users.activate');
+
+    Route::delete('/users/{id}', [App\Http\Controllers\Admin\SuperAdminController::class, 'destroy'])
+        ->name('superadmin.users.destroy');
 });

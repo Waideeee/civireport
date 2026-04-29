@@ -1,36 +1,52 @@
-const ROWS_PER_PAGE = 10;
-let currentPage   = 1;
-let auditLogData  = [];
-let filteredData  = [];
-let currentSearch = "";
-let currentSort   = "newest";
+const DEFAULT_PAGE_SIZE = 20;
 
-function escapeHtml(str) {
-  return String(str)
+let currentPage = 1;
+let totalRecords = 0;
+let totalPages = 1;
+let currentSearch = "";
+let currentStatus = "";
+let currentDateFrom = "";
+let currentDateTo = "";
+
+function escapeHtml(value) {
+  return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function actionBadge(action) {
-  if (!action) return `<span class="audit-badge badge-pending">Unknown</span>`;
+function formatAuditDate(value) {
+  if (!value) return "-";
+  const normalized = String(value).includes("T") ? String(value) : String(value).replace(" ", "T");
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return escapeHtml(value);
 
-  const map = {
-    "approved":    "badge-approved",
-    "reactivated": "badge-approved",
-    "rejected":    "badge-rejected",
-    "deactivated": "badge-rejected",
-    "pending":     "badge-pending"
-  };
-  
-  const cls = map[action.toLowerCase()] || "badge-pending";
-  return `<span class="audit-badge ${cls}">${escapeHtml(action.toUpperCase())}</span>`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-function sortData(data) {
-  return [...data].sort((a, b) =>
-    currentSort === "newest" ? b.id - a.id : a.id - b.id
-  );
+function statusBadge(status) {
+  const normalized = String(status || "").toLowerCase();
+  const label = normalized ? normalized.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()) : "-";
+
+  let badgeClass = "badge-pending";
+  if (normalized === "active" || normalized === "approved" || normalized === "resolved") {
+    badgeClass = "badge-approved";
+  } else if (normalized === "inactive" || normalized === "deactivated" || normalized === "deleted") {
+    badgeClass = "badge-rejected";
+  } else if (normalized === "pending") {
+    badgeClass = "badge-pending";
+  } else if (normalized === "in_progress") {
+    badgeClass = "badge-inprogress";
+  }
+
+  return `<span class="audit-badge ${badgeClass}">${escapeHtml(label)}</span>`;
 }
 
 function initLayout() {
@@ -39,17 +55,25 @@ function initLayout() {
 
   container.innerHTML = `
     <div class="al-toolbar">
-      <div class="al-search-wrap">
-        <svg class="al-search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" id="al-search" class="al-search" placeholder="Search admin, target, action…" />
+      <div class="al-toolbar-left">
+        <div class="al-search-wrap">
+          <svg class="al-search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="al-search" class="al-search" placeholder="Search action..." />
+        </div>
+        <input type="date" id="al-date-from" class="al-select" />
+        <input type="date" id="al-date-to" class="al-select" />
+        <select id="al-status" class="al-select">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="deleted">Deleted</option>
+        </select>
       </div>
       <div class="al-toolbar-right">
-        <select id="al-sort" class="al-select">
-          <option value="newest" selected>Newest First</option>
-          <option value="oldest">Oldest First</option>
-        </select>
         <div class="al-count" id="al-record-count">0 records</div>
       </div>
     </div>
@@ -58,12 +82,13 @@ function initLayout() {
       <table class="al-table">
         <thead>
           <tr>
-            <th class="al-th">AUDIT ID</th>
-            <th class="al-th">DATE AND TIME</th>
-            <th class="al-th">TARGET (BARANGAY ADMIN)</th>
-            <th class="al-th">OLD STATUS</th>
-            <th class="al-th">ACTION / NEW STATUS</th>
-            <th class="al-th">SUPER ADMIN</th>
+            <th class="al-th">Audit Date</th>
+            <th class="al-th">Performed By</th>
+            <th class="al-th">Affected User</th>
+            <th class="al-th">Action</th>
+            <th class="al-th">Old Status</th>
+            <th class="al-th">New Status</th>
+            <th class="al-th">Created At</th>
           </tr>
         </thead>
         <tbody id="al-tbody"></tbody>
@@ -80,90 +105,100 @@ function initLayout() {
   bindEvents();
 }
 
-function renderTable() {
+function renderTable(payload) {
   const tbody = document.getElementById("al-tbody");
   if (!tbody) return;
 
-  const sorted     = sortData(filteredData);
-  const totalPages = Math.ceil(sorted.length / ROWS_PER_PAGE) || 1;
-  const start      = (currentPage - 1) * ROWS_PER_PAGE;
-  const pageData   = sorted.slice(start, start + ROWS_PER_PAGE);
+  const rows = Array.isArray(payload.data) ? payload.data : [];
+  totalRecords = Number(payload.total || 0);
+  totalPages = Math.max(1, Math.ceil(totalRecords / DEFAULT_PAGE_SIZE));
 
-  const rows = pageData.length
-    ? pageData.map((r) => `
+  tbody.innerHTML = rows.length
+    ? rows.map((row) => `
         <tr>
-          <td class="al-td al-mono">SA-AUD-${String(r.id).padStart(3, '0')}</td>
-          <td class="al-td al-mono">${escapeHtml(r.created_at)}</td>
-          <td class="al-td">${escapeHtml(r.target_name)}</td>
-          <td class="al-td"><span class="audit-badge badge-pending">N/A</span></td>
-          <td class="al-td">${actionBadge(r.action)}</td>
-          <td class="al-td">${escapeHtml(r.admin_name)}</td>
-        </tr>`).join("")
-    : `<tr><td colspan="6" class="al-empty">No audit records found.</td></tr>`;
+          <td class="al-td al-mono">${escapeHtml(formatAuditDate(row.audit_date))}</td>
+          <td class="al-td">${escapeHtml(row.superadmin_name || "Unknown")}</td>
+          <td class="al-td">${escapeHtml(row.user_name || "-")}</td>
+          <td class="al-td al-desc">${escapeHtml(row.action_notes || "-")}</td>
+          <td class="al-td">${escapeHtml(row.old_status || "-")}</td>
+          <td class="al-td">${statusBadge(row.new_status || "-")}</td>
+          <td class="al-td al-mono">${escapeHtml(formatAuditDate(row.created_at))}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="7" class="al-empty">No audit records found.</td></tr>`;
 
-  tbody.innerHTML = rows;
-
-  document.getElementById("al-record-count").textContent = `${filteredData.length} record${filteredData.length !== 1 ? "s" : ""}`;
+  document.getElementById("al-record-count").textContent = `${totalRecords} record${totalRecords !== 1 ? "s" : ""}`;
   document.getElementById("al-page-indicator").textContent = `Page ${currentPage} of ${totalPages}`;
-
   document.getElementById("al-prev").disabled = currentPage <= 1;
   document.getElementById("al-next").disabled = currentPage >= totalPages;
 }
 
-function applyFilters() {
-  const q = currentSearch.toLowerCase();
-  filteredData = !q
-    ? [...auditLogData]
-    : auditLogData.filter((r) => {
-        return String(r.id).includes(q) ||
-        (r.admin_name    || '').toLowerCase().includes(q) ||
-        (r.target_name   || '').toLowerCase().includes(q) ||
-        (r.action        || '').toLowerCase().includes(q) ||
-        (r.created_at    || '').toLowerCase().includes(q);
-      });
-  currentPage = 1;
-  renderTable();
+function renderError() {
+  const tbody = document.getElementById("al-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" class="al-empty" style="color:#b91c1c;">Failed to load audit logs.</td></tr>';
+}
+
+function buildQuery() {
+  const params = new URLSearchParams({
+    page: String(currentPage),
+    per_page: String(DEFAULT_PAGE_SIZE),
+  });
+
+  if (currentSearch) params.set("search", currentSearch);
+  if (currentDateFrom) params.set("date_from", currentDateFrom);
+  if (currentDateTo) params.set("date_to", currentDateTo);
+  if (currentStatus) params.set("status", currentStatus);
+  return params.toString();
+}
+
+function fetchAuditLogs() {
+  fetch(`/superadmin/proxy/audit-logs?${buildQuery()}`)
+    .then((response) => response.json())
+    .then((payload) => renderTable(payload))
+    .catch(() => renderError());
 }
 
 function bindEvents() {
-  document.getElementById("al-search")?.addEventListener("input", (e) => {
-    currentSearch = e.target.value;
-    applyFilters();
-  });
-  document.getElementById("al-sort")?.addEventListener("change", (e) => {
-    currentSort = e.target.value;
+  document.getElementById("al-search")?.addEventListener("input", (event) => {
+    currentSearch = event.target.value.trim();
     currentPage = 1;
-    renderTable();
+    fetchAuditLogs();
   });
+
+  document.getElementById("al-date-from")?.addEventListener("change", (event) => {
+    currentDateFrom = event.target.value;
+    currentPage = 1;
+    fetchAuditLogs();
+  });
+
+  document.getElementById("al-date-to")?.addEventListener("change", (event) => {
+    currentDateTo = event.target.value;
+    currentPage = 1;
+    fetchAuditLogs();
+  });
+
+  document.getElementById("al-status")?.addEventListener("change", (event) => {
+    currentStatus = event.target.value;
+    currentPage = 1;
+    fetchAuditLogs();
+  });
+
   document.getElementById("al-prev")?.addEventListener("click", () => {
-    if (currentPage > 1) { currentPage--; renderTable(); }
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    fetchAuditLogs();
   });
+
   document.getElementById("al-next")?.addEventListener("click", () => {
-    const totalPages = Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1;
-    if (currentPage < totalPages) { currentPage++; renderTable(); }
+    if (currentPage >= totalPages) return;
+    currentPage += 1;
+    fetchAuditLogs();
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const tableWrap = document.getElementById("superadmin-audit-log");
-    if (!tableWrap) return;
-    
-    initLayout();
-    
-    // We'll fetch from the Laravel route that calls our FastApiService
-    // But since the controller already fetches logs for the view, we could also just pass them via JSON.
-    // However, the instructions say "match the exact same design" which uses JS fetching in AuditLog.js.
-    // I'll create a small API route in web.php to proxy the superadmin logs for this JS.
-    
-    fetch('/superadmin/proxy/audit-logs')
-        .then(r => r.json())
-        .then(data => {
-            auditLogData = data;
-            filteredData = [...auditLogData];
-            renderTable();
-        })
-        .catch(() => {
-            const tbody = document.getElementById("al-tbody");
-            if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="al-empty" style="color:red;">Failed to load audit logs.</td></tr>';
-        });
+  if (!document.getElementById("superadmin-audit-log")) return;
+  initLayout();
+  fetchAuditLogs();
 });

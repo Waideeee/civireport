@@ -78,7 +78,7 @@
                 <th>Contact</th>
                 <th>Date Registered</th>
                 <th>Status</th>
-                <th></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="residents-tbody"></tbody>
@@ -161,8 +161,8 @@
       <div style="display:flex; align-items:center; gap: 16px;">
         <img id="res-user-photo" src="" alt="Profile" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
         <div class="ur-modal-header-info">
-          <div class="ur-modal-title ur-modal-title--sm">Resident Details</div>
-          <div class="ur-modal-subtitle">Complete profile information</div>
+          <div class="ur-modal-title ur-modal-title--sm" id="account-modal-title">Account Details</div>
+          <div class="ur-modal-subtitle" id="account-modal-subtitle">Complete profile information</div>
         </div>
       </div>
       <div class="ur-modal-header-actions">
@@ -210,12 +210,12 @@
     </div>
     
     <div class="ur-modal-actions" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-      <button class="ur-btn ur-btn-approve" id="res-btn-approve" onclick="submitResidentApprove()" style="display:none; width: 100%;">
-        Approve Resident
-      </button>
-      <button class="ur-btn ur-btn-reject" id="res-btn-reject" onclick="showResidentRejectModal()" style="display:none; width: 100%;">
-        Reject Resident
-      </button>
+        <button class="ur-btn ur-btn-approve" id="res-btn-approve" onclick="submitResidentApprove()" style="display:none; width: 100%;">
+          Approve User
+        </button>
+        <button class="ur-btn ur-btn-reject" id="res-btn-reject" onclick="showResidentRejectModal()" style="display:none; width: 100%;">
+          Reject User
+        </button>
     </div>
   </div>
 </div>
@@ -235,12 +235,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const viewId = urlParams.get('view');
     if (viewId) {
         setTimeout(() => {
-            if (typeof window.openResidentModal === 'function') {
+            if (typeof window.openResidentModal === 'function' && window.approvedUsers?.some(user => user.user_id === parseInt(viewId))) {
                 window.openResidentModal(parseInt(viewId));
-            } else {
-                // In case they are pending approvals, we can't open resident modal, so we do nothing or click approve
-                const btn = document.querySelector(`.btn-approve[data-id="${viewId}"]`);
-                if (btn) btn.click();
+            } else if (typeof window.openPendingResidentModal === 'function') {
+                window.openPendingResidentModal(parseInt(viewId));
             }
         }, 500);
     }

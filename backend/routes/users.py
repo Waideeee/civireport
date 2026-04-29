@@ -6,11 +6,12 @@ from sqlalchemy import func, cast, String
 from database import get_db
 from models.user import User
 from models.auditlog import AuditLog
+from routes.superadmin_auditlog import log_superadmin_audit
 from schemas.user import UserResponse, UserStatusUpdate
 from typing import List
 from mailer import send_account_resolved_email, send_verification_email
 from pydantic import BaseModel
-from security import ADMIN_ROLES, require_admin_actor
+from security import ADMIN_ROLES, require_admin_actor, require_superadmin_actor
 
 class VerificationRequest(BaseModel):
     email: str
@@ -26,6 +27,19 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 def _admin_role_filter():
     return func.lower(cast(User.role, String)).in_(tuple(ADMIN_ROLES))
+
+
+def _normalize_user_status(user: User) -> str:
+    status_text = (user.status or "").strip().lower()
+    if status_text in {"active", "approved", "resolved"} or bool(user.is_active):
+        return "active"
+    if status_text in {"inactive", "deactivated"} or user.is_active is False:
+        return "inactive"
+    return status_text or "pending"
+
+
+def _is_barangay_admin(user: User) -> bool:
+    return (user.role or "").strip().lower() in ADMIN_ROLES
 
 @router.get("/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
@@ -57,12 +71,13 @@ def update_user_status(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     x_civireport_actor_id: str | None = Header(default=None, alias="X-CiviReport-Actor-Id"),
+    x_civireport_actor_role: str | None = Header(default=None, alias="X-CiviReport-Actor-Role"),
 ):
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         return {"error": "User not found"}
 
-    old_status = user.status or ("approved" if user.is_active else "inactive")
+    old_status = _normalize_user_status(user)
     user.status = payload.status
     if payload.status in {"approved", "active", "resolved"}:
         if not user.approved_at:
@@ -83,6 +98,7 @@ def update_user_status(
 
     actor_id = int(x_civireport_actor_id) if x_civireport_actor_id and x_civireport_actor_id.isdigit() else None
     actor = db.query(User).filter(User.user_id == actor_id).first() if actor_id else None
+    actor_role = (x_civireport_actor_role or "").strip().lower()
     note_parts = [f"Resident account for {user.user_name} ({user.email}) {payload.status}."]
     if payload.rejection_reason:
         note_parts.append(f"Reason: {payload.rejection_reason}")
@@ -103,9 +119,65 @@ def update_user_status(
         )
     )
 
+    if actor_id and actor_role == "superadmin" and _is_barangay_admin(user):
+        if payload.status in {"approved", "active", "resolved"}:
+            action_notes = "Account activated"
+        elif payload.status in {"deactivated", "inactive"}:
+            action_notes = "Account deactivated"
+        else:
+            action_notes = f"Account status changed to {payload.status}"
+
+        log_superadmin_audit(
+            db,
+            superadmin_id=actor_id,
+            user_id=user.user_id,
+            user_name=user.user_name,
+            action_notes=action_notes,
+            old_status=old_status,
+            new_status=_normalize_user_status(user),
+            audit_date=now,
+        )
+
     db.commit()
     db.refresh(user)
     return {"message": "Status updated", "user_id": user_id, "status": user.status}
+
+
+@router.delete("/{user_id}", dependencies=[Depends(require_superadmin_actor)])
+def delete_barangay_admin(
+    user_id: int,
+    db: Session = Depends(get_db),
+    x_civireport_actor_id: str | None = Header(default=None, alias="X-CiviReport-Actor-Id"),
+):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+
+    if not _is_barangay_admin(user):
+        return {"error": "Only barangay admin accounts can be deleted from this endpoint."}
+
+    actor_id = int(x_civireport_actor_id) if x_civireport_actor_id and x_civireport_actor_id.isdigit() else None
+    if actor_id is None:
+        return {"error": "Missing superadmin actor."}
+
+    now = datetime.utcnow()
+    old_status = _normalize_user_status(user)
+    deleted_user_id = user.user_id
+    deleted_user_name = user.user_name
+
+    log_superadmin_audit(
+        db,
+        superadmin_id=actor_id,
+        user_id=deleted_user_id,
+        user_name=deleted_user_name,
+        action_notes="Deleted Barangay Admin account",
+        old_status=old_status,
+        new_status="deleted",
+        audit_date=now,
+    )
+    db.delete(user)
+    db.commit()
+    return {"message": "Barangay admin deleted.", "user_id": deleted_user_id}
 
 @router.post("/send-verification")
 async def trigger_verification_email(payload: VerificationRequest, background_tasks: BackgroundTasks):

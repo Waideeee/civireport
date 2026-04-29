@@ -40,6 +40,7 @@
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+  flex: 1;
 }
 
 .al-search {
@@ -68,6 +69,10 @@
   background: #fff;
   cursor: pointer;
   outline: none;
+}
+
+input.al-select {
+  min-width: 150px;
 }
 .al-select:focus {
   border-color: #6366f1;
@@ -140,7 +145,7 @@
 }
 
 .al-desc {
-  max-width: 300px;
+  max-width: 360px;
   color: #6b7280;
 }
 
@@ -256,6 +261,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .al-toolbar {
+    align-items: stretch;
+  }
+
+  .al-toolbar-left,
+  .al-toolbar-right {
+    width: 100%;
+  }
+
+  .al-search-wrap {
+    width: 100%;
+  }
+
+  .al-search {
+    width: 100%;
+  }
 }
 
 /* ─── Badge Colors (consistent) ───────────────────── */

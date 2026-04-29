@@ -117,12 +117,14 @@ document.addEventListener('DOMContentLoaded', function () {
   function populateStats(summary) {
     const total    = summary.total    || 0;
     const resolved = summary.resolved || 0;
+    const inProgress = summary.in_progress || 0;
     const pending  = summary.pending  || 0;
     const rate     = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('stat-total',    total);
     set('stat-resolved', resolved);
+    set('stat-in-progress', inProgress);
     set('stat-pending',  pending);
     set('stat-rate',     `${rate}%`);
   }
@@ -198,7 +200,13 @@ document.addEventListener('DOMContentLoaded', function () {
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 },
+            labels: {
+              padding: 16,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 10,
+              boxHeight: 10,
+            },
           },
           tooltip: {
             callbacks: {

@@ -2,6 +2,7 @@ let allEmergencies = [];
 let currentPage = 1;
 const rowsPerPage = 10;
 let filteredEmergencies = [];
+let currentEmergency = null;
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -81,7 +82,7 @@ function renderTable() {
     const paginated = filteredEmergencies.slice(startIndex, endIndex);
 
     if (paginated.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No emergency reports found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No emergency reports found.</td></tr>`;
     } else {
         paginated.forEach(e => {
             const tr = document.createElement("tr");
@@ -100,7 +101,6 @@ function renderTable() {
                 <td><div class="notes-cell" title="${escapeHtml(e.location)}">${escapeHtml(e.location)}</div></td>
                 <td>${escapeHtml(new Date(e.created_at).toLocaleString())}</td>
                 <td><span class="badge ${badgeClass}">${escapeHtml(e.status.toUpperCase())}</span></td>
-                <td><button class="btn btn-ghost" style="padding:4px 8px; font-size:11px;">View</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -118,8 +118,14 @@ function updatePagination() {
 
 let currentEmergencyId = null;
 
-function openModal(e) {
+function openModal(eOrId) {
+    const e = typeof eOrId === 'number'
+        ? allEmergencies.find(item => item.emergency_id === eOrId)
+        : eOrId;
+    if (!e) return;
+
     currentEmergencyId = e.emergency_id;
+    currentEmergency = e;
     document.getElementById("modal-ticket").innerText = `Emergency #${e.emergency_id}`;
     
     const badgeClass = `badge-${e.status === 'pending' ? 'pending' : (e.status === 'resolved' ? 'approved' : (e.status === 'false_alarm' ? 'rejected' : 'progress'))}`;
@@ -225,12 +231,76 @@ async function submitEmergencyResolve() {
         spinner.style.display = "none";
     }
 }
+
+function downloadEmergencyReport() {
+    if (!currentEmergency || !window.jspdf) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const report = currentEmergency;
+    const printableStatus = String(report.status || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+    const resolvedAt = report.resolved_at ? new Date(report.resolved_at).toLocaleString() : 'Not Resolved';
+    let y = 44;
+
+    doc.setFillColor(30, 58, 138);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("times", "bold");
+    doc.setFontSize(22);
+    doc.text("CiviReport", 15, 20);
+    doc.setFont("times", "normal");
+    doc.setFontSize(12);
+    doc.text("Emergency Report", 148, 20);
+
+    const printRow = (label, value) => {
+        doc.setFont("times", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        doc.text(label, 15, y);
+
+        doc.setFont("times", "normal");
+        doc.setTextColor(20, 20, 20);
+        const lines = doc.splitTextToSize(String(value || 'N/A'), 120);
+        doc.text(lines, 60, y);
+        y += (lines.length * 5) + 5;
+    };
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("times", "bold");
+    doc.setFontSize(14);
+    doc.text("REPORT DETAILS", 15, y);
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, y + 3, 195, y + 3);
+    y += 12;
+
+    printRow("Emergency ID:", `#${report.emergency_id}`);
+    printRow("Resident Name:", report.user_name);
+    printRow("Contact Number:", report.contact_num || 'N/A');
+    printRow("Location:", report.location);
+    printRow("Status:", printableStatus);
+    printRow("Reported At:", new Date(report.created_at).toLocaleString());
+    printRow("Resolved At:", resolvedAt);
+    printRow("Acknowledge Notes:", report.notes || 'No acknowledge notes.');
+
+    if (report.resolution_notes) {
+        printRow("Resolution Notes:", report.resolution_notes);
+    }
+
+    const now = new Date();
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 285);
+    doc.save(`Emergency_Report_${report.emergency_id}.pdf`);
+}
+
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.closeModalDirect = closeModalDirect;
 window.showEmergencyResolveModal = showEmergencyResolveModal;
 window.closeEmergencyResolveModal = closeEmergencyResolveModal;
 window.submitEmergencyResolve = submitEmergencyResolve;
+window.downloadEmergencyReport = downloadEmergencyReport;
 
 function showEmergencyFalseAlarmModal() {
     document.getElementById("falsealarm-emergency-id").innerText = `#${currentEmergencyId}`;

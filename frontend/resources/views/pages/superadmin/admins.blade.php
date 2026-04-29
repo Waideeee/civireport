@@ -86,6 +86,10 @@
                                             <button type="submit" class="btn-activate">Reactivate</button>
                                         </form>
                                         @endif
+                                        <button type="button" class="btn-deactivate btn-confirm-delete"
+                                                data-id="{{ $admin['user_id'] }}"
+                                                data-name="{{ $admin['user_name'] }}"
+                                                style="background:#991b1b; margin-left:8px;">Delete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -164,6 +168,26 @@
             <form id="deactivate-form" action="" method="POST" style="display: inline;">
                 @csrf @method('PATCH')
                 <button type="submit" class="qa-btn" style="background: #ef4444; color: white;">Deactivate</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Delete Admin Account</h3>
+            <span class="modal-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to permanently delete <strong id="delete-admin-name"></strong>'s account?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="qa-btn modal-cancel-btn" style="background: #f3f4f6; color: #374151; margin-right: 10px;">Cancel</button>
+            <form id="delete-form" action="" method="POST" style="display: inline;">
+                @csrf @method('DELETE')
+                <button type="submit" class="qa-btn" style="background: #991b1b; color: white;">Delete</button>
             </form>
         </div>
     </div>

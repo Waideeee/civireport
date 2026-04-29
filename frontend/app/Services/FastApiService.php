@@ -45,19 +45,14 @@ class FastApiService
         return $this->client()->get('/superadmin/stats')->json();
     }
 
-    public function getSuperAdminAuditLogs()
+    public function getSuperAdminAuditLogs(array $params = [])
     {
-        return $this->client()->get('/superadmin/audit-logs')->json();
+        return $this->client()->get('/api/superadmin/audit-logs', $params)->json();
     }
 
-
-    public function logSuperAdminAction($adminId, $targetUserId, $action)
+    public function createSuperAdminAuditLog(array $payload)
     {
-        return $this->client()->post('/superadmin/log', [
-            'admin_id' => $adminId,
-            'target_user_id' => $targetUserId,
-            'action' => $action
-        ])->json();
+        return $this->client()->post('/api/superadmin/audit-logs', $payload)->json();
     }
 
     public function registerBarangayAdmin(array $payload): array
@@ -168,6 +163,11 @@ class FastApiService
     public function updateUserStatus($id, $payload)
     {
         return $this->client()->patch("/users/{$id}/status", $payload)->json();
+    }
+
+    public function deleteUser($id)
+    {
+        return $this->client()->delete("/users/{$id}")->json();
     }
 
     public function getPendingAdmins()

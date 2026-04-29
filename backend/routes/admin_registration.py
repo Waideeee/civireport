@@ -1,7 +1,7 @@
 import secrets
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
 from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,7 @@ from database import get_db
 from mailer import send_barangay_admin_created_email
 from models.user import User
 from passwords import hash_password
+from routes.superadmin_auditlog import log_superadmin_audit
 from schemas.user import BarangayAdminCreate
 from schema_alignment import ensure_user_verification_columns, sync_users_user_id_sequence
 
@@ -28,6 +29,8 @@ def register_barangay_admin(
     payload: BarangayAdminCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    x_civireport_actor_id: str | None = Header(default=None, alias="X-CiviReport-Actor-Id"),
+    x_civireport_actor_role: str | None = Header(default=None, alias="X-CiviReport-Actor-Role"),
 ):
     try:
         ensure_user_verification_columns()
@@ -67,6 +70,20 @@ def register_barangay_admin(
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        if (x_civireport_actor_role or "").strip().lower() == "superadmin":
+            actor_id = int(x_civireport_actor_id) if x_civireport_actor_id and x_civireport_actor_id.isdigit() else None
+            if actor_id is not None:
+                log_superadmin_audit(
+                    db,
+                    superadmin_id=actor_id,
+                    user_id=new_user.user_id,
+                    user_name=new_user.user_name,
+                    action_notes="Created Barangay Admin account",
+                    old_status=None,
+                    new_status="pending",
+                )
+                db.commit()
 
         if new_user.email:
             background_tasks.add_task(

@@ -91,6 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const deactivateModal = document.getElementById('deactivate-modal');
     const deactivateForm = document.getElementById('deactivate-form');
     const deactivateNameSpan = document.getElementById('deactivate-admin-name');
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteForm = document.getElementById('delete-form');
+    const deleteNameSpan = document.getElementById('delete-admin-name');
 
     document.querySelectorAll('.btn-confirm-deactivate').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -102,16 +105,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    document.querySelectorAll('.btn-confirm-delete').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            deleteNameSpan.textContent = name;
+            deleteForm.action = `/superadmin/users/${id}`;
+            deleteModal.style.display = 'flex';
+        });
+    });
+
     // Universal Close Modal Logic
     document.querySelectorAll('.modal-close, .modal-cancel-btn').forEach(el => {
         el.addEventListener('click', () => {
             if (detailsModal) detailsModal.style.display = 'none';
             if (deactivateModal) deactivateModal.style.display = 'none';
+            if (deleteModal) deleteModal.style.display = 'none';
         });
     });
 
     window.addEventListener('click', (e) => {
         if (e.target === detailsModal) detailsModal.style.display = 'none';
         if (e.target === deactivateModal) deactivateModal.style.display = 'none';
+        if (e.target === deleteModal) deleteModal.style.display = 'none';
     });
 });

@@ -55,25 +55,24 @@ class SuperAdminController extends Controller
 
     public function auditLog()
     {
-        try {
-            $logs = $this->api->getSuperAdminAuditLogs() ?? [];
-        } catch (\Exception $e) {
-            $logs = [];
-        }
-        return view('pages.superadmin.audit-log', compact('logs'));
+        return view('pages.superadmin.AuditLogs');
     }
 
     public function deactivate($id)
     {
         $this->api->updateUserStatus($id, ['status' => 'deactivated']);
-        $this->api->logSuperAdminAction(auth()->id(), $id, 'deactivated');
         return back()->with('success', 'Barangay admin deactivated.');
     }
 
     public function activate($id)
     {
         $this->api->updateUserStatus($id, ['status' => 'active']);
-        $this->api->logSuperAdminAction(auth()->id(), $id, 'reactivated');
         return back()->with('success', 'Barangay admin reactivated.');
+    }
+
+    public function destroy($id)
+    {
+        $this->api->deleteUser($id);
+        return back()->with('success', 'Barangay admin deleted.');
     }
 }
