@@ -42,7 +42,7 @@ class FastApiService
 
     public function getSuperAdminStats()
     {
-        return $this->client()->get('/superadmin/stats')->json();
+        return $this->client()->get('/api/superadmin/stats')->json();
     }
 
     public function getSuperAdminAuditLogs(array $params = [])
@@ -127,6 +127,17 @@ class FastApiService
         ])->json();
     }
 
+    public function deactivateAdminAccount($id, array $payload): array
+    {
+        $response = $this->client()->patch("/api/superadmin/admins/{$id}/deactivate", $payload);
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
+    }
+
     public function getComplaint($id)
     {
         return $this->client()->get("/api/complaints/{$id}")->json();
@@ -162,12 +173,24 @@ class FastApiService
 
     public function updateUserStatus($id, $payload)
     {
-        return $this->client()->patch("/users/{$id}/status", $payload)->json();
+        $response = $this->client()->patch("/users/{$id}/status", $payload);
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
     }
 
     public function deleteUser($id)
     {
-        return $this->client()->delete("/users/{$id}")->json();
+        $response = $this->client()->delete("/users/{$id}");
+
+        return [
+            'successful' => $response->successful(),
+            'status' => $response->status(),
+            'data' => $response->json(),
+        ];
     }
 
     public function getPendingAdmins()

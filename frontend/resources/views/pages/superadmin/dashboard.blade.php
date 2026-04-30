@@ -5,6 +5,7 @@
 @section('content')
 
 @vite(['resources/css/app.css', 'resources/css/dashboard.css', 'resources/css/superadmin.css'])
+@vite(['resources/js/superadmin-dashboard.js'])
 
 <div class="main">
     <div class="topbar">
@@ -30,19 +31,19 @@
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-num">{{ $stats['active_admins'] ?? 0 }}</div>
+                    <div class="stat-num" id="sa-stat-active-admins">{{ $stats['active_admins'] ?? 0 }}</div>
                     <div class="stat-label">Active Barangay Admins</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num">{{ $stats['inactive_admins'] ?? 0 }}</div>
+                    <div class="stat-num" id="sa-stat-inactive-admins">{{ $stats['inactive_admins'] ?? 0 }}</div>
                     <div class="stat-label">Inactive Barangay Admins</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num">{{ $stats['total_residents'] ?? 0 }}</div>
+                    <div class="stat-num" id="sa-stat-total-residents">{{ $stats['total_residents'] ?? 0 }}</div>
                     <div class="stat-label">Total Registered Residents</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-num">{{ $stats['total_complaints'] ?? 0 }}</div>
+                    <div class="stat-num" id="sa-stat-total-complaints">{{ $stats['total_complaints'] ?? 0 }}</div>
                     <div class="stat-label">Total Complaints</div>
                 </div>
             </div>
@@ -65,7 +66,7 @@
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="sa-admins-tbody">
                             @forelse($allAdmins as $admin)
                                 <tr>
                                     <td>{{ $admin['user_name'] }}</td>

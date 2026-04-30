@@ -86,6 +86,7 @@ def log_superadmin_audit(
     user_id: Optional[int],
     user_name: Optional[str],
     action_notes: str,
+    action: Optional[str] = None,
     old_status: Optional[str] = None,
     new_status: Optional[str] = None,
     audit_date: Optional[datetime] = None,
@@ -99,7 +100,7 @@ def log_superadmin_audit(
         target = db.query(User).filter(User.user_id == user_id).first()
         cleaned_user_name = target.user_name if target else None
 
-    legacy_action = normalized_new_status or (action_notes.strip()[:50] if action_notes.strip() else None)
+    legacy_action = action or normalized_new_status or (action_notes.strip()[:50] if action_notes.strip() else None)
 
     record = SuperAdminAuditLog(
         admin_id=superadmin_id,

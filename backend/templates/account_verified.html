@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your CiviReport Account Has Been Verified</title>
+  </head>
+  <body style="margin: 0; padding: 32px 16px; background: #f3f6fb; font-family: Arial, sans-serif; color: #0f172a;">
+    <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #dbe4f0; border-radius: 18px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); padding: 28px 32px; color: #ffffff;">
+        <div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 6px;">CiviReport</div>
+        <div style="font-size: 0.9rem; color: #dbeafe;">Barangay Management System</div>
+      </div>
+
+      <div style="padding: 32px;">
+        <h1 style="margin: 0 0 16px; font-size: 1.5rem; color: #166534;">Congratulations, {{ user_name }}!</h1>
+        <p style="margin: 0 0 14px; line-height: 1.7; color: #334155;">
+          Your account has been successfully verified and is now active.
+        </p>
+        <p style="margin: 0 0 20px; line-height: 1.7; color: #334155;">
+          Your registered email address is <strong>{{ registered_email }}</strong>.
+        </p>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 20px; margin-bottom: 22px;">
+          <p style="margin: 0 0 10px; color: #1e3a8a; font-weight: 700;">You can now log in to the CiviReport admin dashboard.</p>
+          <p style="margin: 0;">
+            <a href="{{ login_url }}" style="color: #1d4ed8; text-decoration: none; font-weight: 700;">{{ login_url }}</a>
+          </p>
+        </div>
+
+        <p style="margin: 0; line-height: 1.7; color: #475569;">
+          If you need assistance, contact your barangay office.
+        </p>
+      </div>
+
+      <div style="padding: 20px 32px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0 0 6px; font-size: 0.8rem; color: #64748b;">Barangay Contact Info</p>
+        <p style="margin: 0; font-size: 0.9rem; color: #334155;">{{ barangay_contact_info }}</p>
+      </div>
+    </div>
+  </body>
+</html>

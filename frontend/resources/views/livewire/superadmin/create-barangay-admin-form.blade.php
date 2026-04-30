@@ -1,89 +1,4 @@
 <div>
-    <style>
-    .sa-form-grid {
-        display: grid; 
-        grid-template-columns: repeat(2, minmax(0, 1fr)); 
-        gap: 20px;
-    }
-
-    .sa-form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .sa-form-group.full-width {
-        grid-column: span 2;
-    }
-
-    .sa-label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #374151;
-    }
-
-    .sa-input {
-        width: 100%;
-        padding: 12px 16px;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        color: #111827;
-        background-color: #f9fafb;
-        transition: all 0.2s ease;
-        outline: none;
-        box-sizing: border-box;
-    }
-
-    .sa-input:focus {
-        border-color: #3b82f6;
-        background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    }
-
-    .sa-input::placeholder {
-        color: #9ca3af;
-    }
-
-    .sa-error {
-        margin-top: 6px;
-        color: #ef4444;
-        font-size: 0.85rem;
-    }
-
-    .sa-btn-submit {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: #ffffff;
-        font-weight: 600;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
-    }
-
-    .sa-btn-submit:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3), 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-    }
-
-    .sa-btn-submit:active {
-        transform: translateY(0);
-    }
-
-    @media (max-width: 768px) {
-        .sa-form-grid {
-            grid-template-columns: 1fr;
-        }
-        .sa-form-group.full-width {
-            grid-column: span 1;
-        }
-    }
-    </style>
-
     <div class="table-card" style="margin-bottom: 32px; padding: 28px;">
         <div class="section-header" style="margin-bottom: 24px;">
             <div>
@@ -131,10 +46,27 @@
                     <input id="sa-password-confirmation" type="password" wire:model.blur="password_confirmation" class="sa-input" placeholder="Repeat password">
                 </div>
 
-                <div class="sa-form-group full-width">
+                <div class="sa-form-group sa-half">
                     <label for="sa-contact-number" class="sa-label">Contact Number</label>
                     <input id="sa-contact-number" type="text" wire:model.blur="contact_number" class="sa-input" placeholder="09XXXXXXXXX">
                     @error('contact_number') <div class="sa-error">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="sa-form-group sa-half">
+                    <label for="sa-gender" class="sa-label">Gender</label>
+                    <select id="sa-gender" wire:model.blur="gender" class="sa-input">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                    @error('gender') <div class="sa-error">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="sa-form-group full-width">
+                    <label for="sa-address" class="sa-label">Address</label>
+                    <input id="sa-address" type="text" wire:model.blur="address" class="sa-input" placeholder="Complete barangay address">
+                    @error('address') <div class="sa-error">{{ $message }}</div> @enderror
                 </div>
             </div>
 

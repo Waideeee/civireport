@@ -53,10 +53,15 @@
             </select>
             <select id="cr-filter-type" class="cr-select">
               <option value="">All Types</option>
-              <option value="Peace & Order">Peace &amp; Order</option>
-              <option value="Infrastructure">Infrastructure</option>
-              <option value="Health & Sanitation">Health &amp; Sanitation</option>
-              <option value="Social Services">Social Services</option>
+              <option value="Peace and Order / Safety">Peace and Order / Safety</option>
+              <option value="Sanitation and Waste Management">Sanitation and Waste Management</option>
+              <option value="Flooding and Drainage">Flooding and Drainage</option>
+              <option value="Traffic and Road Concerns">Traffic and Road Concerns</option>
+              <option value="Animal-Related Concerns">Animal-Related Concerns</option>
+              <option value="Community and Social Issues">Community and Social Issues</option>
+              <option value="Health & Safety">Health &amp; Safety</option>
+              <option value="Social/Family Concerns">Social/Family Concerns</option>
+              <option value="Land and Property Issues">Land and Property Issues</option>
             </select>
             <select id="cr-filter-urgency" class="cr-select">
               <option value="">All Urgency</option>
@@ -340,19 +345,5 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewId = urlParams.get('view');
-    if (viewId) {
-        setTimeout(() => {
-            if (typeof window.openModal === 'function') {
-                window.openModal(parseInt(viewId));
-            }
-        }, 300);
-    }
-});
-</script>
 
 @endsection

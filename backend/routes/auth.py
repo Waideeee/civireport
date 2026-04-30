@@ -79,6 +79,7 @@ def verify_email_token(token: str, db: Session = Depends(get_db)):
     return {
         "message": "Your email has been verified. You can now log in.",
         "email": user.email,
+        "user_name": user.user_name,
     }
 
 

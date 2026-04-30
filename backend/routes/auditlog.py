@@ -7,6 +7,12 @@ from models.user import User
 from schemas.auditlog import AuditLogResponse
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
+
+def _format_timestamp(value):
+    if not value:
+        return ""
+    return value.strftime("%Y-%m-%d %H:%M")
+
 @router.get("/", response_model=list[AuditLogResponse])
 def get_audit_logs(db: Session = Depends(get_db)):
     results = (
@@ -22,7 +28,7 @@ def get_audit_logs(db: Session = Depends(get_db)):
     return [
         {
             "audit_id":     audit.audit_id,
-            "audit_date":   str(audit.created_at) if audit.created_at else "",
+            "audit_date":   _format_timestamp(audit.audit_date or audit.created_at),
             "complaint_id": audit.complaint_id,
             "emergency_id": audit.emergency_id,
             "user_id":      audit.user_id if not audit.complaint_id and not audit.emergency_id else None,

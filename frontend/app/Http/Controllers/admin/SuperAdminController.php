@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\FastApiService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SuperAdminController extends Controller
 {
@@ -58,21 +61,46 @@ class SuperAdminController extends Controller
         return view('pages.superadmin.AuditLogs');
     }
 
-    public function deactivate($id)
+    protected function handleActionResponse(array $response, string $successMessage): RedirectResponse
     {
-        $this->api->updateUserStatus($id, ['status' => 'deactivated']);
-        return back()->with('success', 'Barangay admin deactivated.');
+        if (! ($response['successful'] ?? false)) {
+            $message = $response['data']['detail']
+                ?? $response['data']['message']
+                ?? 'The superadmin action could not be completed.';
+
+            return back()->with('error', $message);
+        }
+
+        return back()->with('success', $successMessage);
+    }
+
+    public function deactivate(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ], [
+            'reason.required' => 'Please provide a reason for deactivation.',
+        ]);
+
+        $response = $this->api->deactivateAdminAccount($id, [
+            'reason' => $validated['reason'],
+            'deactivated_by' => Auth::id(),
+        ]);
+
+        return $this->handleActionResponse($response, 'Admin account has been deactivated successfully.');
     }
 
     public function activate($id)
     {
-        $this->api->updateUserStatus($id, ['status' => 'active']);
-        return back()->with('success', 'Barangay admin reactivated.');
+        $response = $this->api->updateUserStatus($id, ['status' => 'active']);
+
+        return $this->handleActionResponse($response, 'Barangay admin reactivated.');
     }
 
     public function destroy($id)
     {
-        $this->api->deleteUser($id);
-        return back()->with('success', 'Barangay admin deleted.');
+        $response = $this->api->deleteUser($id);
+
+        return $this->handleActionResponse($response, 'Barangay admin deleted.');
     }
 }

@@ -93,13 +93,7 @@
         </x-button>
     </x-slot>
 
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            Livewire.on('saved', () => {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 800);
-            });
-        });
-    </script>
+    @push('scripts')
+        @vite(['resources/js/profile-save-reload.js'])
+    @endpush
 </x-form-section>

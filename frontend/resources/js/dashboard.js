@@ -1,4 +1,5 @@
 window.addEventListener('load', function () {
+  let refreshInterval = null;
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -166,18 +167,15 @@ window.addEventListener('load', function () {
         }
         var latest = logs.slice(0, 5);
         var html = '<table class="cr-table">' +
-                   '<thead><tr><th>Date</th><th>Admin</th><th>Report ID</th><th>Action</th></tr></thead>' +
+                   '<thead><tr><th>Date</th><th>Admin</th><th>AUDIT ID</th><th>Action</th></tr></thead>' +
                    '<tbody>';
         latest.forEach(function (log) {
-          var isEmergency = log.emergency_id !== null && log.emergency_id !== undefined;
-          var displayId = isEmergency ? String(log.emergency_id).padStart(3, '0') : String(log.complaint_id).padStart(3, '0');
-          var prefix = isEmergency ? '#EMG-' : '#';
-          
+          var displayId = String(log.audit_id).padStart(3, '0');
           var d = log.audit_date ? new Date(log.audit_date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'N/A';
           html += '<tr>' +
                     '<td>' + escapeHtml(d) + '</td>' +
-                    '<td>' + escapeHtml(log.admin_name || 'System') + '</td>' +
-                    '<td><strong>' + prefix + displayId + '</strong></td>' +
+                    '<td>' + escapeHtml(log.admin_name || log.user_full_name || 'System') + '</td>' +
+                    '<td><strong>#' + displayId + '</strong></td>' +
                     '<td><span style="color: #6b7280;">Status: </span><span style="font-weight:600; color: #374151;">' + escapeHtml(log.old_status) + '</span> &rarr; <span style="font-weight:600; color: #374151;">' + escapeHtml(log.new_status) + '</span></td>' +
                   '</tr>';
         });
@@ -195,7 +193,22 @@ window.addEventListener('load', function () {
   refreshDashboardData();
 
   // ── POLLING (Every 3 Seconds) ─────────────────────────────
-  setInterval(refreshDashboardData, 3000);
+  function startRefreshInterval() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(refreshDashboardData, 1000);
+  }
+
+  startRefreshInterval();
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    } else {
+      refreshDashboardData();
+      startRefreshInterval();
+    }
+  });
 
   // ── Approve / Reject handlers ────────────────────────────
   window.approveUser = function(userId, btn) {

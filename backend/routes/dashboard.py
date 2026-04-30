@@ -4,6 +4,7 @@ from sqlalchemy import func, or_, cast, String
 from database import get_db
 from models.user import User
 from models.complaint import Complaint
+from models.auditlog import AuditLog
 from security import ADMIN_ROLES
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -106,4 +107,18 @@ def get_registered_users(db: Session = Depends(get_db)):
         }
         for u in users
     ]
-    
+
+@router.get("/recent-activity")
+def get_recent_activity(db: Session = Depends(get_db)):
+    logs = db.query(AuditLog).order_by(AuditLog.audit_date.desc()).limit(10).all()
+    return [
+        {
+            "audit_id": log.audit_id,
+            "audit_date": str(log.audit_date) if log.audit_date else None,
+            "user_name": log.user_name,
+            "action_notes": log.action_notes,
+            "old_status": log.old_status,
+            "new_status": log.new_status
+        }
+        for log in logs
+    ]

@@ -44,38 +44,42 @@
 }
 
 .al-search {
-  height: 36px;
+  height: 44px;
   padding: 0 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.825rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  font-size: 0.9rem;
   color: #111827;
   outline: none;
   width: 220px;
   transition: border-color 0.2s;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 .al-search:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  border-color: #5b7ac2;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.14), 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
 .al-select {
-  height: 36px;
+  height: 44px;
   padding: 0 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.825rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  font-size: 0.9rem;
   color: #374151;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   cursor: pointer;
   outline: none;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 input.al-select {
   min-width: 150px;
 }
 .al-select:focus {
-  border-color: #6366f1;
+  border-color: #5b7ac2;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.14), 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
 .al-count {

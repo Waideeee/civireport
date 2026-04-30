@@ -9,6 +9,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
 Route::get('/verify-email/{token}', [BarangayAdminVerificationController::class, 'verify'])
     ->name('barangay-admin.verification.verify');
 
@@ -210,15 +211,50 @@ Route::middleware([
         ->name('superadmin.audit_log');
 
     Route::get('/proxy/audit-logs', function(\Illuminate\Http\Request $request, App\Services\FastApiService $api) {
-        return response()->json($api->getSuperAdminAuditLogs($request->only([
-            'page',
-            'per_page',
-            'search',
-            'date_from',
-            'date_to',
-            'status',
-        ])));
+        try {
+            $params = array_filter($request->only([
+                'page',
+                'per_page',
+                'search',
+                'date_from',
+                'date_to',
+                'status',
+            ]), fn($v) => $v !== null && $v !== '');
+            $result = $api->getSuperAdminAuditLogs($params);
+            return response()->json($result ?? ['data' => [], 'total' => 0, 'page' => 1, 'per_page' => 20]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Superadmin audit log proxy error: ' . $e->getMessage());
+            return response()->json(['data' => [], 'total' => 0, 'page' => 1, 'per_page' => 20]);
+        }
     })->name('superadmin.proxy.audit_logs');
+
+    Route::get('/proxy/stats', function (App\Services\FastApiService $api) {
+        try {
+            return response()->json($api->getSuperAdminStats() ?? [
+                'active_admins' => 0,
+                'inactive_admins' => 0,
+                'total_residents' => 0,
+                'total_complaints' => 0,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Superadmin stats proxy error: ' . $e->getMessage());
+            return response()->json([
+                'active_admins' => 0,
+                'inactive_admins' => 0,
+                'total_residents' => 0,
+                'total_complaints' => 0,
+            ]);
+        }
+    })->name('superadmin.proxy.stats');
+
+    Route::get('/proxy/admins', function (App\Services\FastApiService $api) {
+        try {
+            return response()->json($api->getAllAdmins() ?? []);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Superadmin admins proxy error: ' . $e->getMessage());
+            return response()->json([]);
+        }
+    })->name('superadmin.proxy.admins');
 
     Route::patch('/users/{id}/deactivate', [App\Http\Controllers\Admin\SuperAdminController::class, 'deactivate'])
         ->name('superadmin.users.deactivate');

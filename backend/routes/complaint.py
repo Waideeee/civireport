@@ -1,11 +1,13 @@
 import base64
 import binascii
+import os
 import secrets
 import time
 from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
@@ -16,6 +18,9 @@ from schemas.complaint import ComplaintCreate, ComplaintRatingUpdate, ComplaintR
 from security import require_admin_actor
 from mailer import send_complaint_resolved_email, send_complaint_update_email, send_new_complaint_email
 
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8001").rstrip("/")
 
 router = APIRouter(prefix="/api/complaints", tags=["Complaints"])
 
@@ -90,6 +95,23 @@ def _format_action_entry(action_number: int, note: str, timestamp: datetime) -> 
     return f"Action {action_number} - {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n{note.strip()}"
 
 
+def _build_media_url(file_path: str | None) -> str:
+    if not file_path:
+        return ""
+
+    normalized_path = str(file_path).strip()
+    lowered_path = normalized_path.lower()
+
+    if lowered_path.startswith("http://") or lowered_path.startswith("https://"):
+        return normalized_path
+
+    cleaned_path = normalized_path.replace("\\", "/").lstrip("/")
+    if cleaned_path.lower().startswith("uploads/"):
+        cleaned_path = cleaned_path[8:]
+
+    return f"{BASE_URL}/uploads/{cleaned_path.lstrip('/')}"
+
+
 def _append_resolution_note(existing_notes: str | None, new_note: str, now: datetime) -> str:
     cleaned_new_note = new_note.strip()
     existing_text = (existing_notes or "").strip()
@@ -112,7 +134,7 @@ def complaint_to_dict(c: Complaint, u: User | None):
         for media in c.complaint_media:
             media_list.append({
                 "media_id": media.media_id,
-                "file_path": media.file_path,
+                "file_path": _build_media_url(media.file_path),
                 "media_type": media.media_type,
             })
 

@@ -56,7 +56,16 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::authenticateUsing(function (Request $request) {
             $user = User::where('email', $request->email)->first();
 
-            if (! $user || ! Hash::check($request->password, $user->password)) {
+            if (! $user) {
+                return null;
+            }
+
+            // Gracefully handle non-bcrypt passwords (e.g. set by FastAPI/passlib)
+            try {
+                if (! Hash::check($request->password, $user->password)) {
+                    return null;
+                }
+            } catch (\RuntimeException $e) {
                 return null;
             }
 

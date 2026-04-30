@@ -1,4 +1,13 @@
 {
+  "resources/css/Announcements.css": {
+    "file": "assets/Announcements-DTOfoYkf.css",
+    "src": "resources/css/Announcements.css",
+    "isEntry": true,
+    "name": "Announcements",
+    "names": [
+      "Announcements.css"
+    ]
+  },
   "resources/css/AuditLog.css": {
     "file": "assets/AuditLog-CDdBAU99.css",
     "src": "resources/css/AuditLog.css",
@@ -36,7 +45,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-B7gdORWt.css",
+    "file": "assets/app-CFKuUiwY.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -62,8 +71,17 @@
       "emergency-alert.css"
     ]
   },
+  "resources/css/sidebar.css": {
+    "file": "assets/sidebar-BHwdLXpQ.css",
+    "src": "resources/css/sidebar.css",
+    "isEntry": true,
+    "name": "sidebar",
+    "names": [
+      "sidebar.css"
+    ]
+  },
   "resources/css/superadmin.css": {
-    "file": "assets/superadmin-V7_UFHOs.css",
+    "file": "assets/superadmin-Dr-ay1Ht.css",
     "src": "resources/css/superadmin.css",
     "isEntry": true,
     "name": "superadmin",
@@ -71,8 +89,20 @@
       "superadmin.css"
     ]
   },
+  "resources/js/Announcements.js": {
+    "file": "assets/Announcements-BuyeKBNK.js",
+    "name": "Announcements",
+    "src": "resources/js/Announcements.js",
+    "isEntry": true
+  },
+  "resources/js/AuditLog.js": {
+    "file": "assets/AuditLog-DemnRz8I.js",
+    "name": "AuditLog",
+    "src": "resources/js/AuditLog.js",
+    "isEntry": true
+  },
   "resources/js/Complaints.js": {
-    "file": "assets/Complaints-LzdygXIF.js",
+    "file": "assets/Complaints-C8Wg1nrD.js",
     "name": "Complaints",
     "src": "resources/js/Complaints.js",
     "isEntry": true
@@ -84,7 +114,7 @@
     "isEntry": true
   },
   "resources/js/UserRecords.js": {
-    "file": "assets/UserRecords-Dkjj3gaN.js",
+    "file": "assets/UserRecords-Csu1a0Qf.js",
     "name": "UserRecords",
     "src": "resources/js/UserRecords.js",
     "isEntry": true
@@ -93,6 +123,12 @@
     "file": "assets/app-BuG9aa18.js",
     "name": "app",
     "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/dashboard.js": {
+    "file": "assets/dashboard-CQGJcGGY.js",
+    "name": "dashboard",
+    "src": "resources/js/dashboard.js",
     "isEntry": true
   },
   "resources/js/emergency-alert.js": {
@@ -107,10 +143,28 @@
     "src": "resources/js/global-notifications.js",
     "isEntry": true
   },
+  "resources/js/profile-save-reload.js": {
+    "file": "assets/profile-save-reload-BMpmgAbA.js",
+    "name": "profile-save-reload",
+    "src": "resources/js/profile-save-reload.js",
+    "isEntry": true
+  },
+  "resources/js/sidebar.js": {
+    "file": "assets/sidebar-D-nbQjmd.js",
+    "name": "sidebar",
+    "src": "resources/js/sidebar.js",
+    "isEntry": true
+  },
   "resources/js/superadmin-admins.js": {
-    "file": "assets/superadmin-admins-ZYmrnF_s.js",
+    "file": "assets/superadmin-admins-D1o2ishr.js",
     "name": "superadmin-admins",
     "src": "resources/js/superadmin-admins.js",
+    "isEntry": true
+  },
+  "resources/js/superadmin-audit.js": {
+    "file": "assets/superadmin-audit-BCEeFz5i.js",
+    "name": "superadmin-audit",
+    "src": "resources/js/superadmin-audit.js",
     "isEntry": true
   }
 }

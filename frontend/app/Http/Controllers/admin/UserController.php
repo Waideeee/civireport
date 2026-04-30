@@ -44,7 +44,7 @@ class UserController extends Controller
         $result = $this->api->updateUserStatus($id, $payload);
 
         // Always return JSON so the frontend AJAX handler can read it
-        if ($result && !isset($result['error'])) {
+        if ($result['successful'] ?? false) {
             return response()->json([
                 'success' => true,
                 'message' => $request->status === 'approved'
@@ -55,7 +55,9 @@ class UserController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => $result['error'] ?? 'Failed to update user status.',
-        ], 422);
+            'message' => $result['data']['detail']
+                ?? $result['data']['message']
+                ?? 'Failed to update user status.',
+        ], $result['status'] ?? 422);
     }
 }

@@ -373,7 +373,7 @@ async def send_verification_email(
     except Exception as e:
         logger.error(f"Failed to send verification email to {user_email}. Error: {str(e)}")
 
-async def send_verification_success_email(
+async def send_account_verified_email(
     user_email: str,
     user_name: str
 ):
@@ -381,23 +381,28 @@ async def send_verification_success_email(
         return
 
     try:
+        login_url = os.getenv("FRONTEND_LOGIN_URL", "http://127.0.0.1:8000/login")
+        barangay_contact_info = os.getenv("BARANGAY_CONTACT_INFO", "Please contact your barangay office for assistance.")
         template_body = {
-            "user_name": user_name
+            "user_name": user_name,
+            "registered_email": user_email,
+            "login_url": login_url,
+            "barangay_contact_info": barangay_contact_info,
         }
 
         message = MessageSchema(
-            subject="Account Verified Successfully — CiviReport",
+            subject="Your CiviReport Account Has Been Verified",
             recipients=[user_email],
             template_body=template_body,
             subtype=MessageType.html
         )
 
         fm = FastMail(conf)
-        await fm.send_message(message, template_name="verified_confirmation.html")
-        logger.info(f"Successfully sent verification success email to {user_email}")
+        await fm.send_message(message, template_name="account_verified.html")
+        logger.info(f"Successfully sent account verified email to {user_email}")
         
     except Exception as e:
-        logger.error(f"Failed to send verification success email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send account verified email to {user_email}. Error: {str(e)}")
 
 
 async def send_barangay_admin_created_email(

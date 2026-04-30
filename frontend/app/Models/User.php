@@ -94,4 +94,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the user's name for Jetstream profile photo.
+     *
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return $this->user_name ?: 'Admin';
+    }
 }

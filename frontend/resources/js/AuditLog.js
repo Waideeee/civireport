@@ -12,6 +12,12 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
+function formatAuditDate(value) {
+  if (!value) return "—";
+  const normalized = String(value).replace("T", " ").slice(0, 16);
+  return normalized || "—";
+}
+
 function statusBadge(status) {
   if (!status) return `<span class="audit-badge badge-pending">Unknown</span>`;
 
@@ -122,13 +128,13 @@ function renderTable() {
     ? pageData.map((r) => `
         <tr>
           <td class="al-td al-mono">AUD-${String(r.audit_id).padStart(3, '0')}</td>
-          <td class="al-td al-mono">${escapeHtml(r.audit_date)}</td>
-          <td class="al-td">${escapeHtml(r.admin_name)}</td>
+          <td class="al-td al-mono">${escapeHtml(formatAuditDate(r.audit_date))}</td>
+          <td class="al-td">${escapeHtml(r.admin_name || r.user_name || r.user_full_name || "System")}</td>
           <td class="al-td ${r.complaint_id || r.emergency_id ? 'al-mono' : ''}">${escapeHtml(referenceLabel(r))}</td>
           <td class="al-td">${statusBadge(r.old_status)}</td>
           <td class="al-td">${statusBadge(r.new_status)}${r.action_notes ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; max-width: 200px; white-space: normal; line-height: 1.2;">Note: ${escapeHtml(r.action_notes)}</div>` : ''}</td>
         </tr>`).join("")
-    : `<tr><td colspan="6" class="al-empty">No audit records found.</td></tr>`;
+    : `<tr><td colspan="6" class="al-empty">No audit log entries found matching your search.</td></tr>`;
 
   tbody.innerHTML = rows;
 
@@ -155,6 +161,8 @@ function applyFilters() {
         String(r.complaint_id || '').includes(q) ||
         String(r.emergency_id || '').includes(q) ||
         (r.admin_name    || '').toLowerCase().includes(q) ||
+        (r.user_name     || '').toLowerCase().includes(q) ||
+        (r.user_full_name || '').toLowerCase().includes(q) ||
         (r.audit_date    || '').toLowerCase().includes(q) ||
         (r.old_status    || '').toLowerCase().includes(q) ||
         (r.new_status    || '').toLowerCase().includes(q) ||

@@ -19,16 +19,24 @@
 
     <div class="content">
         <div class="page active">
+            @if (session('success'))
+                <div class="superadmin-flash superadmin-flash--success">{{ session('success') }}</div>
+            @endif
+
+            @if (session('error'))
+                <div class="superadmin-flash superadmin-flash--error">{{ session('error') }}</div>
+            @endif
+
             <div class="section-header">
                 <div class="section-title">All Barangay Admins</div>
-                <div class="toolbar-filters" style="display: flex; gap: 15px;">
-                    <select id="admins-status-filter" class="al-select qa-btn">
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="deactivated">Deactivated</option>
-                    </select>
-                    <div class="search-box">
-                        <input type="text" id="admin-search" placeholder="Search by Name or Email..." class="qa-btn" style="padding: 8px 15px; border-radius: 8px; width: 300px;">
+                <div class="toolbar-filters admin-toolbar-filters">
+                    <div class="status-filter-group" id="admins-status-filter" role="tablist" aria-label="Filter admin status">
+                        <button type="button" class="status-filter-btn is-active" data-status="all">All Status</button>
+                        <button type="button" class="status-filter-btn" data-status="active">Active</button>
+                        <button type="button" class="status-filter-btn" data-status="deactivated">Deactivated</button>
+                    </div>
+                    <div class="search-box admin-search-box">
+                        <input type="text" id="admin-search" placeholder="Search by Name or Email..." class="admin-search-input">
                     </div>
                 </div>
             </div>
@@ -41,7 +49,6 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Barangay</th>
-                                <th>Date Registered</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -53,6 +60,7 @@
                                 data-name="{{ strtolower($admin['user_name'] ?? '') }}" 
                                 data-email="{{ strtolower($admin['email'] ?? '') }}" 
                                 data-details="{{ json_encode([
+                                    'user_id' => $admin['user_id'],
                                     'user_name' => $admin['user_name'],
                                     'email' => $admin['email'],
                                     'gender' => $admin['gender'] ?? 'N/A',
@@ -66,7 +74,6 @@
                                 <td>{{ $admin['user_name'] }}</td>
                                 <td>{{ $admin['email'] }}</td>
                                 <td>{{ $admin['barangay'] ?? $admin['address'] ?? 'N/A' }}</td>
-                                <td>{{ $admin['date_registered'] }}</td>
                                 <td>
                                     <span class="status-badge-container">
                                         <span class="badge {{ $admin['is_active'] ? 'badge-approved' : 'badge-rejected' }}">
@@ -86,16 +93,12 @@
                                             <button type="submit" class="btn-activate">Reactivate</button>
                                         </form>
                                         @endif
-                                        <button type="button" class="btn-deactivate btn-confirm-delete"
-                                                data-id="{{ $admin['user_id'] }}"
-                                                data-name="{{ $admin['user_name'] }}"
-                                                style="background:#991b1b; margin-left:8px;">Delete</button>
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr id="empty-row">
-                                <td colspan="6" class="empty-state">No barangay admins found.</td>
+                                <td colspan="5" class="empty-state">No barangay admins found.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -149,6 +152,13 @@
                     <p id="modal-status" style="margin: 5px 0 0 0;"></p>
                 </div>
             </div>
+            <div class="admin-modal-actions">
+                <form id="modal-activate-form" action="" method="POST" style="display: none;">
+                    @csrf @method('PATCH')
+                    <button type="submit" id="modal-activate-btn" class="btn-activate">Reactivate</button>
+                </form>
+                <button type="button" id="modal-deactivate-btn" class="btn-deactivate" style="display: none;">Deactivate</button>
+            </div>
         </div>
     </div>
 </div>
@@ -161,13 +171,28 @@
             <span class="modal-close">&times;</span>
         </div>
         <div class="modal-body">
-            <p>Are you sure you want to deactivate <strong id="deactivate-admin-name"></strong>'s account?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="qa-btn modal-cancel-btn" style="background: #f3f4f6; color: #374151; margin-right: 10px;">Cancel</button>
-            <form id="deactivate-form" action="" method="POST" style="display: inline;">
+            <p>Are you sure you want to deactivate this admin?</p>
+            <form id="deactivate-form" action="" method="POST">
                 @csrf @method('PATCH')
-                <button type="submit" class="qa-btn" style="background: #ef4444; color: white;">Deactivate</button>
+                <div class="superadmin-modal-field">
+                    <label for="deactivate-reason" class="superadmin-modal-label">
+                        Reason for Deactivation <span class="superadmin-modal-required">*</span>
+                    </label>
+                    <textarea
+                        id="deactivate-reason"
+                        name="reason"
+                        class="superadmin-modal-textarea"
+                        rows="4"
+                        placeholder="Please provide a reason for deactivation."
+                    >{{ old('reason') }}</textarea>
+                    <div id="deactivate-reason-error" class="superadmin-modal-error{{ $errors->has('reason') ? ' is-visible' : '' }}">
+                        {{ $errors->first('reason') ?: 'Please provide a reason for deactivation.' }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="qa-btn modal-cancel-btn" style="background: #f3f4f6; color: #374151; margin-right: 10px;">Cancel</button>
+                    <button type="submit" id="deactivate-submit-btn" class="qa-btn" style="background: #ef4444; color: white;">Deactivate</button>
+                </div>
             </form>
         </div>
     </div>

@@ -43,6 +43,8 @@ class BarangayAdminCreate(BaseModel):
         max_length=50,
         validation_alias=AliasChoices("contact_number", "contact_num"),
     )
+    gender: str = Field(min_length=1, max_length=50)
+    address: str = Field(min_length=5, max_length=500)
 
 
 class ResendVerificationRequest(BaseModel):

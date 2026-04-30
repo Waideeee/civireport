@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const fontFamily = "'Montserrat', sans-serif";
     Chart.defaults.font.family = fontFamily;
     Chart.defaults.font.size   = 12;
-    Chart.defaults.color       = '#6b7280';
+    Chart.defaults.font.weight = '400';
+    Chart.defaults.color       = '#000000';
   }
 
   // ===== Blade-injected data =====
@@ -272,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const normalizedLabels = labels.map((label, index) => {
       const rating = String(label || '').replace('STAR_', '') || String(index + 1);
       const count = values[index] || 0;
-      return `STAR ${rating}: ${count}`;
+      return `${rating} Star: ${count}`;
     });
 
     const ctx = canvas.getContext('2d');
@@ -303,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
           x: {
             grid: { display: false },
             ticks: {
-              callback: (_, index) => `STAR ${index + 1}`,
+              callback: (_, index) => `${index + 1} Star`,
             },
           },
           y: {
@@ -740,11 +741,29 @@ document.addEventListener('DOMContentLoaded', function () {
     );
 
     sectionHeading('MONTHLY REPORTS TREND');
-    table(
-      ['Month', 'Reports'],
-      mLabels.map((m, i) => [m, mValues[i]]),
-      [260, 180]
-    );
+    if (chartInstances['chartTrend']) {
+      try {
+        const chartImg = chartInstances['chartTrend'].toBase64Image();
+        const imgWidth = pageW - (margin * 2);
+        const imgHeight = 160;
+        checkPage(imgHeight + 20);
+        doc.addImage(chartImg, 'PNG', margin, y, imgWidth, imgHeight);
+        y += imgHeight + 20;
+      } catch (e) {
+        console.error("Could not capture chart as image", e);
+        table(
+          ['Month', 'Reports'],
+          mLabels.map((m, i) => [m, mValues[i]]),
+          [260, 180]
+        );
+      }
+    } else {
+      table(
+        ['Month', 'Reports'],
+        mLabels.map((m, i) => [m, mValues[i]]),
+        [260, 180]
+      );
+    }
 
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {

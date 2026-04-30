@@ -318,6 +318,13 @@
         </div>
     </div>
 
+    @if($complaint['complaint_status'] === 'rejected' && !empty($complaint['rejection_reason']))
+        <div class="section rejection-reason" style="margin-bottom: 18px;">
+            <strong style="color: #991b1b;">Rejection Reason:</strong>
+            <div class="note-block" style="background: #fef2f2; border-color: #fca5a5; color: #991b1b; margin-top: 6px;">{{ $complaint['rejection_reason'] }}</div>
+        </div>
+    @endif
+
     @if(!empty($complaint['resolved_notes']))
         <div class="section">
             <h2 class="section-title">Resolution Details</h2>

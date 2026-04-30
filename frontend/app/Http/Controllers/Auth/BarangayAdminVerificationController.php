@@ -15,6 +15,17 @@ class BarangayAdminVerificationController extends Controller
         $response = $api->verifyBarangayAdminEmail($token);
 
         if ($response['successful']) {
+            $email = $response['data']['email'] ?? null;
+            $name = $response['data']['user_name'] ?? 'Barangay Admin';
+
+            if ($email) {
+                try {
+                    $api->sendVerificationSuccessEmail($email, $name);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
             return redirect('/login')->with('status', 'Your email has been verified. You can now log in.');
         }
 

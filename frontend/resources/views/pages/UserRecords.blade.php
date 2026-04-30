@@ -229,20 +229,4 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const viewId = urlParams.get('view');
-    if (viewId) {
-        setTimeout(() => {
-            if (typeof window.openResidentModal === 'function' && window.approvedUsers?.some(user => user.user_id === parseInt(viewId))) {
-                window.openResidentModal(parseInt(viewId));
-            } else if (typeof window.openPendingResidentModal === 'function') {
-                window.openPendingResidentModal(parseInt(viewId));
-            }
-        }, 500);
-    }
-});
-</script>
-
 @endsection

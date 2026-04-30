@@ -53,9 +53,11 @@ def register_barangay_admin(
         new_user = User(
             user_name=payload.full_name.strip(),
             email=payload.email.strip().lower(),
+            gender=payload.gender.strip(),
             password=hash_password(payload.password),
             role="barangay_admin",
             contact_num=payload.contact_number.strip(),
+            address=payload.address.strip(),
             date_registered=date.today(),
             approved_at=None,
             status="pending",
@@ -101,7 +103,9 @@ def register_barangay_admin(
                 "user_name": new_user.user_name,
                 "email": new_user.email,
                 "role": new_user.role,
+                "gender": new_user.gender,
                 "contact_num": new_user.contact_num,
+                "address": new_user.address,
                 "status": new_user.status,
             },
         }

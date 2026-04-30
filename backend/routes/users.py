@@ -9,7 +9,7 @@ from models.auditlog import AuditLog
 from routes.superadmin_auditlog import log_superadmin_audit
 from schemas.user import UserResponse, UserStatusUpdate
 from typing import List
-from mailer import send_account_resolved_email, send_verification_email
+from mailer import send_account_resolved_email, send_account_verified_email, send_verification_email
 from pydantic import BaseModel
 from security import ADMIN_ROLES, require_admin_actor, require_superadmin_actor
 
@@ -191,9 +191,8 @@ async def trigger_verification_email(payload: VerificationRequest, background_ta
 
 @router.post("/send-verification-success")
 async def trigger_verification_success_email(payload: VerificationSuccessRequest, background_tasks: BackgroundTasks):
-    from mailer import send_verification_success_email
     background_tasks.add_task(
-        send_verification_success_email,
+        send_account_verified_email,
         user_email=payload.email,
         user_name=payload.name
     )

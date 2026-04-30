@@ -19,6 +19,10 @@ class CreateBarangayAdminForm extends Component
 
     public string $contact_number = '';
 
+    public string $gender = '';
+
+    public string $address = '';
+
     public ?string $successMessage = null;
 
     public ?string $errorMessage = null;
@@ -37,6 +41,8 @@ class CreateBarangayAdminForm extends Component
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'contact_number' => ['required', 'string', 'min:7', 'max:50'],
+            'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
+            'address' => ['required', 'string', 'min:5', 'max:500'],
         ]);
 
         try {
@@ -46,6 +52,8 @@ class CreateBarangayAdminForm extends Component
                 'email' => $validated['email'],
                 'password' => $validated['password'],
                 'contact_number' => $validated['contact_number'],
+                'gender' => $validated['gender'],
+                'address' => $validated['address'],
             ]);
 
             if (! $response['successful']) {
@@ -58,7 +66,7 @@ class CreateBarangayAdminForm extends Component
             }
 
             $this->successMessage = $response['data']['message'] ?? 'Barangay admin account created successfully.';
-            $this->reset(['full_name', 'email', 'password', 'password_confirmation', 'contact_number']);
+            $this->reset(['full_name', 'email', 'password', 'password_confirmation', 'contact_number', 'gender', 'address']);
             $this->dispatch('barangay-admin-created');
         } catch (\Exception $e) {
             $this->errorMessage = 'Failed to connect to the backend server. Make sure FastAPI is running.';
