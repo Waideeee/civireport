@@ -18,8 +18,6 @@ class User(Base):
     approved_at = Column(Date)
     status = Column(String(50), default="pending")
     rejection_reason = Column(String(500))
-    is_verified = Column(Boolean, default=False)
-    verified_at = Column(TIMESTAMP, nullable=True)
     two_factor_secret = Column(String, nullable=True)
     two_factor_recovery_codes = Column(String, nullable=True)
     two_factor_confirmed_at = Column(TIMESTAMP, nullable=True)

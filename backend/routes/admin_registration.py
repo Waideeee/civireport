@@ -62,8 +62,6 @@ def register_barangay_admin(
             approved_at=None,
             status="pending",
             is_active=False,
-            is_verified=False,
-            verified_at=None,
             email_verified_at=None,
             email_verification_token=token,
             email_verification_token_expires=token_expires,

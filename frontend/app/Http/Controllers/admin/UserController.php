@@ -30,7 +30,7 @@ class UserController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status'           => 'required|in:approved,rejected,active,inactive',
+            'status'           => 'required|in:approved,rejected,deactivated',
             // rejection_reason is required only when rejecting
             'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
         ]);

@@ -92,7 +92,7 @@ class SuperAdminController extends Controller
 
     public function activate($id)
     {
-        $response = $this->api->updateUserStatus($id, ['status' => 'active']);
+        $response = $this->api->updateUserStatus($id, ['status' => 'approved']);
 
         return $this->handleActionResponse($response, 'Barangay admin reactivated.');
     }

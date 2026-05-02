@@ -21,11 +21,14 @@ def _admin_role_filter():
 
 
 def _normalize_admin_status(user: User) -> str:
+    """Returns canonical status: approved, deactivated, rejected, or pending."""
     status_text = (user.status or "").strip().lower()
-    if status_text in {"active", "approved", "resolved"} or bool(user.is_active):
-        return "active"
-    if status_text in {"inactive", "deactivated"} or user.is_active is False:
-        return "inactive"
+    if status_text in {"approved", "active", "resolved"} or bool(user.is_active):
+        return "approved"
+    if status_text in {"deactivated", "inactive"} or user.is_active is False:
+        return "deactivated"
+    if status_text == "rejected":
+        return "rejected"
     return status_text or "pending"
 
 
@@ -84,7 +87,7 @@ def deactivate_admin_account(
     now = datetime.utcnow()
 
     user.is_active = False
-    user.status = "inactive"
+    user.status = "deactivated"
 
     log_superadmin_audit(
         db,
@@ -94,7 +97,7 @@ def deactivate_admin_account(
         action="Account deactivated",
         action_notes=payload.reason.strip(),
         old_status=old_status,
-        new_status="inactive",
+        new_status="deactivated",
         audit_date=now,
     )
 

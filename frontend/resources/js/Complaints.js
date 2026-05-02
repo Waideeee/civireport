@@ -8,9 +8,23 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/'/g, '&#39;');
   }
 
+  function formatFileSize(bytes) {
+    if (bytes == null || isNaN(bytes)) return '';
+    const b = Number(bytes);
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  }
+
   function buildUploadUrl(rawPath) {
-    const normalized = String(rawPath || '')
-      .replace(/\\/g, '/')
+    const raw = String(rawPath || '').replace(/\\/g, '/').trim();
+    if (!raw) return '';
+
+    // If backend already returned a full URL, use it as-is.
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    const normalized = raw
       .split('/')
       .filter(Boolean)
       .map(segment => encodeURIComponent(segment))
@@ -286,8 +300,19 @@ document.addEventListener('DOMContentLoaded', function () {
       resolutionContainer.style.display = 'block';
       document.getElementById('md-resolved-notes').textContent = complaint.resolved_notes || 'No action taken recorded.';
       if (complaint.resolved_media) {
-        const uploadUrl = buildUploadUrl(complaint.resolved_media.startsWith('uploads/') ? complaint.resolved_media : `uploads/${complaint.resolved_media}`);
-        document.getElementById('md-resolved-media').innerHTML = `<a href="${uploadUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; padding: 4px 12px; background: #dcfce7; color: #166534; border-radius: 6px; font-size: 0.75rem; text-decoration: none; font-weight: 600;">View Action Proof</a>`;
+        const items = String(complaint.resolved_media).split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+        document.getElementById('md-resolved-media').innerHTML = items.map(item => {
+          const path = /^https?:\/\//i.test(item) || item.startsWith('uploads/') ? item : `uploads/${item}`;
+          const uploadUrl = buildUploadUrl(path);
+          const ext = item.split('.').pop().toLowerCase();
+          const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(ext);
+          if (isVideo) {
+            return `<video src="${uploadUrl}" controls class="modal-media-item modal-media-video"></video>`;
+          }
+          return `<a href="${uploadUrl}" target="_blank" rel="noopener noreferrer" class="modal-media-item">
+            <img src="${uploadUrl}" alt="Action proof" loading="lazy" />
+          </a>`;
+        }).join('');
       } else {
         document.getElementById('md-resolved-media').innerHTML = '';
       }
@@ -319,11 +344,36 @@ document.addEventListener('DOMContentLoaded', function () {
     const mediaContainer = document.getElementById('md-media-link');
     if (complaint.media.length > 0) {
       mediaContainer.innerHTML = complaint.media.map(media => {
-        const uploadUrl = buildUploadUrl(media.file_path.startsWith('uploads/') ? media.file_path : `uploads/${media.file_path}`);
-        return `<a href="${uploadUrl}" target="_blank" rel="noopener noreferrer" style="display:block; margin-bottom:4px; color:#1d4ed8; text-decoration:underline;">View ${escapeHtml(media.media_type || 'media')}</a>`;
+        const mediaPath = /^https?:\/\//i.test(media.file_path) || media.file_path.startsWith('uploads/') ? media.file_path : `uploads/${media.file_path}`;
+        const uploadUrl = buildUploadUrl(mediaPath);
+        const mediaType = String(media.media_type || '').toLowerCase();
+        const fileName = media.file_name || mediaPath.split('/').pop() || 'media';
+        const fileSize = formatFileSize(media.file_size);
+        const meta = `<div class="modal-media-meta">
+          <span class="modal-media-filename" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</span>
+          ${fileSize ? `<span class="modal-media-size">${escapeHtml(fileSize)}</span>` : ''}
+        </div>`;
+        if (mediaType.startsWith('image/')) {
+          return `<div class="modal-media-cell">
+            <a href="${uploadUrl}" target="_blank" rel="noopener noreferrer" class="modal-media-item">
+              <img src="${uploadUrl}" alt="Complaint media" loading="lazy" />
+            </a>
+            ${meta}
+          </div>`;
+        }
+        if (mediaType.startsWith('video/')) {
+          return `<div class="modal-media-cell">
+            <video src="${uploadUrl}" controls preload="metadata" class="modal-media-item modal-media-video"></video>
+            ${meta}
+          </div>`;
+        }
+        return `<div class="modal-media-cell">
+          <a href="${uploadUrl}" target="_blank" rel="noopener noreferrer" class="modal-media-fallback">View ${escapeHtml(media.media_type || 'media')}</a>
+          ${meta}
+        </div>`;
       }).join('');
     } else {
-      mediaContainer.innerHTML = '<span style="color:#6b7280; font-style:italic;">No media attached</span>';
+      mediaContainer.innerHTML = '<span class="modal-media-empty">No media attached</span>';
     }
 
     document.getElementById('ai-recommendation-content').textContent = complaint.ai_recommendation || 'No recommendation available';

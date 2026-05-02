@@ -30,11 +30,14 @@ def _admin_role_filter():
 
 
 def _normalize_user_status(user: User) -> str:
+    """Returns canonical status: approved, deactivated, rejected, or pending."""
     status_text = (user.status or "").strip().lower()
-    if status_text in {"active", "approved", "resolved"} or bool(user.is_active):
-        return "active"
-    if status_text in {"inactive", "deactivated"} or user.is_active is False:
-        return "inactive"
+    if status_text in {"approved", "active", "resolved"} or bool(user.is_active):
+        return "approved"
+    if status_text in {"deactivated", "inactive"} or user.is_active is False:
+        return "deactivated"
+    if status_text == "rejected":
+        return "rejected"
     return status_text or "pending"
 
 
@@ -78,12 +81,29 @@ def update_user_status(
         return {"error": "User not found"}
 
     old_status = _normalize_user_status(user)
-    user.status = payload.status
-    if payload.status in {"approved", "active", "resolved"}:
+
+    # Canonicalize incoming status to one of: pending, approved, rejected, deactivated.
+    incoming_status = (payload.status or "").strip().lower()
+    if incoming_status in {"approved", "active", "resolved"}:
+        canonical_status = "approved"
+    elif incoming_status in {"rejected"}:
+        canonical_status = "rejected"
+    elif incoming_status in {"deactivated", "inactive"}:
+        canonical_status = "deactivated"
+    elif incoming_status in {"pending"}:
+        canonical_status = "pending"
+    else:
+        canonical_status = incoming_status
+
+    user.status = canonical_status
+
+    if canonical_status == "approved":
         if not user.approved_at:
             user.approved_at = date.today()
         user.is_active = True
-        
+        # Clear any stale rejection reason on (re-)approval.
+        user.rejection_reason = None
+
         # Send activation email for resident-style workflows only.
         if user.email and (user.role or "").lower() not in ADMIN_ROLES:
             background_tasks.add_task(
@@ -91,7 +111,7 @@ def update_user_status(
                 user_email=user.email,
                 user_name=user.user_name
             )
-    elif payload.status in {"rejected", "deactivated", "inactive"}:
+    elif canonical_status in {"rejected", "deactivated"}:
         user.is_active = False
         if payload.rejection_reason:
             user.rejection_reason = payload.rejection_reason
@@ -99,7 +119,7 @@ def update_user_status(
     actor_id = int(x_civireport_actor_id) if x_civireport_actor_id and x_civireport_actor_id.isdigit() else None
     actor = db.query(User).filter(User.user_id == actor_id).first() if actor_id else None
     actor_role = (x_civireport_actor_role or "").strip().lower()
-    note_parts = [f"Resident account for {user.user_name} ({user.email}) {payload.status}."]
+    note_parts = [f"Resident account for {user.user_name} ({user.email}) {canonical_status}."]
     if payload.rejection_reason:
         note_parts.append(f"Reason: {payload.rejection_reason}")
 
@@ -111,7 +131,7 @@ def update_user_status(
             user_id=actor_id,
             user_name=actor.user_name if actor else "System",
             old_status=old_status,
-            new_status=payload.status,
+            new_status=canonical_status,
             action_notes=" ".join(note_parts),
             audit_date=now,
             created_at=now,
@@ -120,12 +140,12 @@ def update_user_status(
     )
 
     if actor_id and actor_role == "superadmin" and _is_barangay_admin(user):
-        if payload.status in {"approved", "active", "resolved"}:
+        if canonical_status == "approved":
             action_notes = "Account activated"
-        elif payload.status in {"deactivated", "inactive"}:
+        elif canonical_status == "deactivated":
             action_notes = "Account deactivated"
         else:
-            action_notes = f"Account status changed to {payload.status}"
+            action_notes = f"Account status changed to {canonical_status}"
 
         log_superadmin_audit(
             db,
@@ -134,7 +154,7 @@ def update_user_status(
             user_name=user.user_name,
             action_notes=action_notes,
             old_status=old_status,
-            new_status=_normalize_user_status(user),
+            new_status=canonical_status,
             audit_date=now,
         )
 

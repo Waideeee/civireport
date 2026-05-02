@@ -132,10 +132,26 @@ def complaint_to_dict(c: Complaint, u: User | None):
     media_list = []
     if getattr(c, "complaint_media", None):
         for media in c.complaint_media:
+            raw_path = (media.file_path or "").strip()
+            # Resolve to disk path so we can read filename + size.
+            disk_relative = raw_path.replace("\\", "/").lstrip("/")
+            if disk_relative.lower().startswith("uploads/"):
+                disk_relative = disk_relative[8:]
+            disk_path = os.path.join("uploads", disk_relative) if disk_relative else None
+            file_size = None
+            if disk_path and os.path.isfile(disk_path):
+                try:
+                    file_size = os.path.getsize(disk_path)
+                except OSError:
+                    file_size = None
+            file_name = os.path.basename(disk_relative) if disk_relative else None
+
             media_list.append({
                 "media_id": media.media_id,
                 "file_path": _build_media_url(media.file_path),
                 "media_type": media.media_type,
+                "file_name": file_name,
+                "file_size": file_size,
             })
 
     service_feedback = None

@@ -5,8 +5,6 @@ let totalRecords = 0;
 let totalPages = 1;
 let currentSearch = "";
 let currentStatus = "";
-let currentDateFrom = "";
-let currentDateTo = "";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -63,13 +61,12 @@ function initLayout() {
           </svg>
           <input type="text" id="al-search" class="al-search" placeholder="Search action..." />
         </div>
-        <input type="date" id="al-date-from" class="al-select" />
-        <input type="date" id="al-date-to" class="al-select" />
         <select id="al-status" class="al-select">
           <option value="">All Status</option>
           <option value="pending">Pending</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="approved">Approved</option>
+          <option value="deactivated">Deactivated</option>
+          <option value="rejected">Rejected</option>
           <option value="deleted">Deleted</option>
         </select>
       </div>
@@ -146,8 +143,6 @@ function buildQuery() {
   });
 
   if (currentSearch) params.set("search", currentSearch);
-  if (currentDateFrom) params.set("date_from", currentDateFrom);
-  if (currentDateTo) params.set("date_to", currentDateTo);
   if (currentStatus) params.set("status", currentStatus);
   return params.toString();
 }
@@ -162,18 +157,6 @@ function fetchAuditLogs() {
 function bindEvents() {
   document.getElementById("al-search")?.addEventListener("input", (event) => {
     currentSearch = event.target.value.trim();
-    currentPage = 1;
-    fetchAuditLogs();
-  });
-
-  document.getElementById("al-date-from")?.addEventListener("change", (event) => {
-    currentDateFrom = event.target.value;
-    currentPage = 1;
-    fetchAuditLogs();
-  });
-
-  document.getElementById("al-date-to")?.addEventListener("change", (event) => {
-    currentDateTo = event.target.value;
     currentPage = 1;
     fetchAuditLogs();
   });

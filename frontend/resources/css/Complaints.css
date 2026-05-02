@@ -440,6 +440,121 @@ tr:hover td {
   font-size: 0.85rem;
 }
 
+.modal-media-section {
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.modal-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.modal-media-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-media-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.modal-media-filename {
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-media-size {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.modal-media-item {
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  aspect-ratio: 4 / 3;
+  cursor: zoom-in;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-media-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modal-media-item img,
+.modal-media-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.modal-media-video {
+  cursor: default;
+}
+
+.modal-media-fallback {
+  display: inline-block;
+  padding: 8px 14px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.modal-media-empty {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.modal-section-card--resolution {
+  margin-top: 14px;
+}
+
+.modal-section-header--success {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.modal-resolution-box {
+  background: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  padding: 14px !important;
+}
+
+.modal-resolution-notes {
+  font-size: 0.85rem !important;
+  color: #166534 !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+  line-height: 1.5;
+}
+
+#md-resolved-media:not(:empty) {
+  margin-top: 12px;
+}
+
 .modal-footer {
   padding: 14px 24px;
   border-top: 1px solid #f3f4f6;

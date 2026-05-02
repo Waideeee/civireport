@@ -60,8 +60,8 @@ function filterEmergencies() {
     const status = document.getElementById("cr-filter-status").value.toLowerCase();
 
     filteredEmergencies = allEmergencies.filter(e => {
-        const matchesSearch = e.user_name.toLowerCase().includes(search) || 
-                              e.location.toLowerCase().includes(search);
+        const matchesSearch = e.user_name.toLowerCase().includes(search) ||
+                              (e.address || "").toLowerCase().includes(search);
         
         const matchesStatus = status ? e.status.toLowerCase() === status : true;
 
@@ -98,7 +98,7 @@ function renderTable() {
                         ${escapeHtml(e.user_name)}
                     </div>
                 </td>
-                <td><div class="notes-cell" title="${escapeHtml(e.location)}">${escapeHtml(e.location)}</div></td>
+                <td><div class="notes-cell" title="${escapeHtml(e.address || '')}">${escapeHtml(e.address || '')}</div></td>
                 <td>${escapeHtml(new Date(e.created_at).toLocaleString())}</td>
                 <td><span class="badge ${badgeClass}">${escapeHtml(e.status.toUpperCase())}</span></td>
             `;
@@ -134,7 +134,7 @@ function openModal(eOrId) {
     
     document.getElementById("md-name").innerText = e.user_name;
     document.getElementById("md-contact").innerText = e.contact_num || "N/A";
-    document.getElementById("md-location").innerText = e.location;
+    document.getElementById("md-location").innerText = e.address || "—";
     document.getElementById("md-date").innerText = new Date(e.created_at).toLocaleString();
     document.getElementById("md-resolved").innerText = e.resolved_at ? new Date(e.resolved_at).toLocaleString() : "Not Resolved";
     document.getElementById("md-notes").innerText = e.notes || "No acknowledge notes.";
@@ -238,60 +238,197 @@ function downloadEmergencyReport() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const report = currentEmergency;
-    const printableStatus = String(report.status || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-    const resolvedAt = report.resolved_at ? new Date(report.resolved_at).toLocaleString() : 'Not Resolved';
-    let y = 44;
-
-    doc.setFillColor(30, 58, 138);
-    doc.rect(0, 0, 210, 30, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("times", "bold");
-    doc.setFontSize(22);
-    doc.text("CiviReport", 15, 20);
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    doc.text("Emergency Report", 148, 20);
-
-    const printRow = (label, value) => {
-        doc.setFont("times", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(120, 120, 120);
-        doc.text(label, 15, y);
-
-        doc.setFont("times", "normal");
-        doc.setTextColor(20, 20, 20);
-        const lines = doc.splitTextToSize(String(value || 'N/A'), 120);
-        doc.text(lines, 60, y);
-        y += (lines.length * 5) + 5;
-    };
-
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("times", "bold");
-    doc.setFontSize(14);
-    doc.text("REPORT DETAILS", 15, y);
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(15, y + 3, 195, y + 3);
-    y += 12;
-
-    printRow("Emergency ID:", `#${report.emergency_id}`);
-    printRow("Resident Name:", report.user_name);
-    printRow("Contact Number:", report.contact_num || 'N/A');
-    printRow("Location:", report.location);
-    printRow("Status:", printableStatus);
-    printRow("Reported At:", new Date(report.created_at).toLocaleString());
-    printRow("Resolved At:", resolvedAt);
-    printRow("Acknowledge Notes:", report.notes || 'No acknowledge notes.');
-
-    if (report.resolution_notes) {
-        printRow("Resolution Notes:", report.resolution_notes);
-    }
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
 
     const now = new Date();
+    const generatedAt = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) +
+        ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    const status = String(report.status || 'pending').toLowerCase();
+    const printableStatus = status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const statusColors = {
+        pending:      { bg: [254, 226, 226], border: [252, 165, 165], text: [153, 27, 27] },
+        acknowledged: { bg: [219, 234, 254], border: [147, 197, 253], text: [29, 78, 216] },
+        resolved:     { bg: [220, 252, 231], border: [134, 239, 172], text: [22, 101, 52] },
+        false_alarm:  { bg: [243, 244, 246], border: [209, 213, 219], text: [55, 65, 81] },
+    };
+    const sc = statusColors[status] || statusColors.pending;
+
+    const reportedAt = report.created_at ? new Date(report.created_at).toLocaleString() : 'N/A';
+    const resolvedAt = report.resolved_at ? new Date(report.resolved_at).toLocaleString() : 'Not Resolved';
+    const emergencyRef = `#${String(report.emergency_id).padStart(3, '0')}`;
+
+    // --- Header ---
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 285);
-    doc.save(`Emergency_Report_${report.emergency_id}.pdf`);
+    doc.setTextColor(29, 78, 216);
+    doc.text("CIVIREPORT", margin, 16);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Official Emergency Report", margin, 26);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Prepared for barangay incident documentation and emergency response tracking.", margin, 32);
+
+    doc.setDrawColor(29, 78, 216);
+    doc.setLineWidth(0.6);
+    doc.line(margin, 36, pageWidth - margin, 36);
+
+    // --- Summary cards ---
+    const cardY = 41;
+    const cardHeight = 28;
+    const cardWidth = (pageWidth - margin * 2 - 4) / 2;
+
+    // Card 1: Emergency Reference
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(margin, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("EMERGENCY REFERENCE", margin + 4, cardY + 6);
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text(emergencyRef, margin + 4, cardY + 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Reported:  ${reportedAt}`, margin + 4, cardY + 20);
+    doc.text(`Resolved:  ${resolvedAt}`, margin + 4, cardY + 25);
+
+    // Card 2: Current Status
+    const card2X = margin + cardWidth + 4;
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(card2X, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("CURRENT STATUS", card2X + 4, cardY + 6);
+
+    doc.setFontSize(8);
+    const badgeText = printableStatus.toUpperCase();
+    const badgeWidth = doc.getTextWidth(badgeText) + 6;
+    doc.setFillColor(...sc.bg);
+    doc.setDrawColor(...sc.border);
+    doc.setLineWidth(0.3);
+    doc.rect(card2X + 4, cardY + 9, badgeWidth, 6, 'FD');
+    doc.setTextColor(...sc.text);
+    doc.setFont("helvetica", "bold");
+    doc.text(badgeText, card2X + 7, cardY + 13.3);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Generated:  ${generatedAt}`, card2X + 4, cardY + 21);
+    doc.text("System:  Barangay Emergency Monitoring", card2X + 4, cardY + 26);
+
+    // --- Sections ---
+    let y = cardY + cardHeight + 10;
+    const drawSectionTitle = (text) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(text, margin, y);
+        doc.setDrawColor(219, 228, 240);
+        doc.setLineWidth(0.4);
+        doc.line(margin, y + 2, pageWidth - margin, y + 2);
+        y += 5;
+    };
+
+    const labelColumn = {
+        cellWidth: 55,
+        fillColor: [241, 245, 249],
+        textColor: [100, 116, 139],
+        fontStyle: 'bold',
+        fontSize: 8,
+    };
+    const valueColumn = { fillColor: [248, 250, 252] };
+    const tableStyles = {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [226, 232, 240],
+        lineWidth: 0.2,
+        textColor: [15, 23, 42],
+    };
+
+    drawSectionTitle("Reporter Details");
+    doc.autoTable({
+        startY: y,
+        theme: 'grid',
+        head: [],
+        body: [
+            ["Resident Name", report.user_name || 'N/A'],
+            ["Contact Number", report.contact_num || 'N/A'],
+            ["Location", report.address || '—'],
+        ],
+        styles: tableStyles,
+        columnStyles: { 0: labelColumn, 1: valueColumn },
+        margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    drawSectionTitle("Incident Timeline");
+    doc.autoTable({
+        startY: y,
+        theme: 'grid',
+        head: [],
+        body: [
+            ["Reported At", reportedAt],
+            ["Resolved At", resolvedAt],
+        ],
+        styles: tableStyles,
+        columnStyles: { 0: labelColumn, 1: valueColumn },
+        margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    drawSectionTitle("Acknowledge Notes");
+    const ackText = report.notes || 'No acknowledge notes recorded.';
+    const ackLines = doc.splitTextToSize(ackText, pageWidth - margin * 2 - 8);
+    const ackHeight = ackLines.length * 5 + 8;
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.rect(margin, y, pageWidth - margin * 2, ackHeight, 'FD');
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+    doc.text(ackLines, margin + 4, y + 6);
+    y += ackHeight + 8;
+
+    if (report.resolution_notes) {
+        drawSectionTitle("Resolution Notes");
+        const resText = report.resolution_notes;
+        const resLines = doc.splitTextToSize(resText, pageWidth - margin * 2 - 8);
+        const resHeight = resLines.length * 5 + 8;
+        doc.setFillColor(240, 253, 244);
+        doc.setDrawColor(187, 247, 208);
+        doc.rect(margin, y, pageWidth - margin * 2, resHeight, 'FD');
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(22, 101, 52);
+        doc.text(resLines, margin + 4, y + 6);
+        y += resHeight + 8;
+    }
+
+    // --- Footer ---
+    doc.setDrawColor(219, 228, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`This is a computer-generated document from CiviReport. Generated on ${generatedAt}.`,
+        pageWidth / 2, pageHeight - 9, { align: 'center' });
+
+    doc.save(`Emergency_Report_${emergencyRef.replace('#', '')}.pdf`);
 }
 
 window.openModal = openModal;

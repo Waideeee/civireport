@@ -67,10 +67,11 @@ def verify_email_token(token: str, db: Session = Depends(get_db)):
 
     now = datetime.utcnow()
     user.email_verified_at = now
-    user.status = "active"
+    # Auto-approve on email verification: status -> "approved", is_active -> True.
+    user.status = "approved"
     user.is_active = True
-    user.is_verified = True
-    user.verified_at = now
+    if not user.approved_at:
+        user.approved_at = now.date()
     user.email_verification_token = None
     user.email_verification_token_expires = None
 
@@ -103,7 +104,7 @@ def resend_verification_email(
             detail="No pending Barangay Admin account was found for that email.",
         )
 
-    if user.email_verified_at and (user.status or "").lower() == "active":
+    if user.email_verified_at and (user.status or "").lower() in {"active", "approved"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This email address is already verified.",
@@ -113,7 +114,7 @@ def resend_verification_email(
     user.email_verification_token_expires = _token_expiry()
     user.status = "pending"
     user.is_active = False
-    user.is_verified = False
+    user.email_verified_at = None
 
     db.commit()
     db.refresh(user)

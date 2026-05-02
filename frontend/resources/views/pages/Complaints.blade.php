@@ -155,25 +155,26 @@
             </div>
           </div>
 
-          {{-- Resolution History --}}
-          <div class="modal-field" id="md-resolution-container" style="display: none;">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <label style="color:#16a34a; margin: 0;">Resolution Notes</label>
-            </div>
-            <div class="modal-notes-box" style="background:#f0fdf4; border: 1px solid #bbf7d0; padding: 12px !important;">
-              <p id="md-resolved-notes" style="font-size: 0.85rem !important; color: #166534 !important; margin: 0 0 8px 0 !important; font-weight: 400 !important;"></p>
-              <div id="md-resolved-media"></div>
-            </div>
-          </div>
+        </div>
+      </div>
 
-          <div class="modal-field">
-            <label>Complaint Media</label>
-            <div class="modal-media" id="md-media-link"></div>
-          </div>
+      <div class="modal-field modal-media-section">
+        <label>Complaint Media</label>
+        <div class="modal-media-grid" id="md-media-link"></div>
+      </div>
+
+      {{-- Resolution Notes + Action Proof --}}
+      <div class="modal-field modal-section-card modal-section-card--resolution" id="md-resolution-container" style="display: none;">
+        <div class="modal-section-header modal-section-header--success">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <label style="color:#16a34a; margin: 0;">Resolution Notes</label>
+        </div>
+        <div class="modal-notes-box modal-resolution-box">
+          <p id="md-resolved-notes" class="modal-resolution-notes"></p>
+          <div class="modal-media-grid" id="md-resolved-media"></div>
         </div>
       </div>
 

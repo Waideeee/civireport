@@ -38,7 +38,7 @@ function triggerEmergencyModal(emergency) {
     // Populate Data
     document.getElementById("emergency-resident-name").innerText = emergency.user_name;
     document.getElementById("emergency-resident-contact").innerText = emergency.contact_num || "N/A";
-    document.getElementById("emergency-location").innerText = emergency.location;
+    document.getElementById("emergency-location").innerText = emergency.address || "—";
     document.getElementById("emergency-time").innerText = new Date(emergency.created_at).toLocaleString();
 
     const imgEl = document.getElementById("emergency-resident-img");

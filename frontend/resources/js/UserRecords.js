@@ -567,28 +567,91 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const { jsPDF } = window.jspdf;
-    // Use landscape mode for the table to fit better
     const doc = new jsPDF('landscape');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
 
-    // --- Header Background ---
-    doc.setFillColor(30, 58, 138); 
-    doc.rect(0, 0, 297, 30, 'F'); 
+    const now = new Date();
+    const generatedAt = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) +
+        ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-    // --- Header Title ---
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("times", "bold");
-    doc.setFontSize(22);
-    doc.text("CiviReport", 15, 20);
+    // --- Header ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(29, 78, 216);
+    doc.text("CIVIREPORT", margin, 16);
 
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    doc.text("Registered Residents Report", 225, 20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Official Registered Residents Report", margin, 26);
 
-    // --- Table Content ---
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Prepared for barangay user records and account status tracking.", margin, 32);
+
+    // Header bottom rule
+    doc.setDrawColor(29, 78, 216);
+    doc.setLineWidth(0.6);
+    doc.line(margin, 36, pageWidth - margin, 36);
+
+    // --- Summary card row ---
+    const cardY = 41;
+    const cardHeight = 22;
+    const cardWidth = (pageWidth - margin * 2 - 4) / 2;
+
+    const total = residentsList.length;
+    const active = residentsList.filter(r => (r.status || '').toLowerCase() === 'active').length;
+    const rejected = residentsList.filter(r => (r.status || '').toLowerCase() === 'rejected').length;
+    const inactive = total - active - rejected;
+
+    // Card 1
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(margin, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("RESIDENT SUMMARY", margin + 4, cardY + 6);
+    doc.setFontSize(13);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`${total} Residents`, margin + 4, cardY + 13);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Active: ${active}    Inactive: ${inactive}    Rejected: ${rejected}`, margin + 4, cardY + 19);
+
+    // Card 2
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(margin + cardWidth + 4, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("REPORT METADATA", margin + cardWidth + 8, cardY + 6);
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated:  ${generatedAt}`, margin + cardWidth + 8, cardY + 12);
+    doc.text("System:  Barangay User Records", margin + cardWidth + 8, cardY + 17);
+
+    // --- Section title ---
+    const tableStart = cardY + cardHeight + 8;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Resident Records", margin, tableStart);
+    doc.setDrawColor(219, 228, 240);
+    doc.setLineWidth(0.4);
+    doc.line(margin, tableStart + 2, pageWidth - margin, tableStart + 2);
+
+    // --- Table ---
     const tableHeaders = [["Name", "Email", "Contact", "Gender", "Date Registered", "Date Approved", "Status"]];
     const tableData = residentsList.map(r => [
-        r.name,
-        r.email,
+        r.name || 'N/A',
+        r.email || 'N/A',
         r.contact || 'N/A',
         r.gender || 'N/A',
         r.date_registered || 'N/A',
@@ -599,17 +662,35 @@ document.addEventListener('DOMContentLoaded', function () {
     doc.autoTable({
         head: tableHeaders,
         body: tableData,
-        startY: 38,
-        theme: 'striped',
-        headStyles: { fillColor: [30, 58, 138] },
-        styles: { fontSize: 9 },
-        margin: { top: 38, left: 15, right: 15 },
-        didDrawPage: function (data) {
-            // Footer
-            const now = new Date();
+        startY: tableStart + 5,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [241, 245, 249],
+            textColor: [100, 116, 139],
+            fontStyle: 'bold',
+            fontSize: 8,
+            cellPadding: 3,
+            lineColor: [226, 232, 240],
+            lineWidth: 0.2,
+        },
+        bodyStyles: {
+            fontSize: 8,
+            textColor: [15, 23, 42],
+            lineColor: [226, 232, 240],
+            lineWidth: 0.2,
+            cellPadding: 3,
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: margin, right: margin, bottom: 20 },
+        didDrawPage: function () {
+            doc.setDrawColor(219, 228, 240);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+            doc.setFont("helvetica", "normal");
             doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
-            doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 200);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`This is a computer-generated document from CiviReport. Generated on ${generatedAt}.`,
+                pageWidth / 2, pageHeight - 9, { align: 'center' });
         }
     });
 
@@ -623,70 +704,196 @@ document.addEventListener('DOMContentLoaded', function () {
     const r = window.currentResident;
     if (!r) return;
 
-    // --- Header Background ---
-    doc.setFillColor(30, 58, 138); 
-    doc.rect(0, 0, 210, 30, 'F'); 
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
 
-    // --- Header Title ---
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("times", "bold");
-    doc.setFontSize(22);
-    doc.text("CiviReport", 15, 20);
+    const now = new Date();
+    const generatedAt = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) +
+        ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
-    doc.text("Official Resident Profile", 145, 20);
+    const status = String(r.status || 'pending').toLowerCase();
+    const statusColors = {
+        active:    { bg: [220, 252, 231], border: [134, 239, 172], text: [22, 101, 52] },
+        approved:  { bg: [220, 252, 231], border: [134, 239, 172], text: [22, 101, 52] },
+        pending:   { bg: [254, 243, 199], border: [252, 211, 77],  text: [146, 64, 14] },
+        rejected:  { bg: [254, 226, 226], border: [252, 165, 165], text: [153, 27, 27] },
+        inactive:  { bg: [254, 226, 226], border: [252, 165, 165], text: [153, 27, 27] },
+    };
+    const sc = statusColors[status] || statusColors.pending;
+    const statusLabel = String(r.status || 'PENDING').toUpperCase();
 
-    let y = 45;
+    // --- Header ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(29, 78, 216);
+    doc.text("CIVIREPORT", margin, 16);
 
-    // --- Helper ---
-    const printRow = (label, value) => {
-      doc.setFont("times", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(120, 120, 120);
-      doc.text(label, 15, y);
-      
-      doc.setFont("times", "normal");
-      doc.setTextColor(20, 20, 20);
-      // Ensure long text (like addresses) break correctly
-      const lines = doc.splitTextToSize(String(value || 'N/A'), 120);
-      doc.text(lines, 60, y);
-      
-      y += (lines.length * 5) + 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Official Resident Profile", margin, 26);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Prepared for barangay resident documentation and account verification.", margin, 32);
+
+    doc.setDrawColor(29, 78, 216);
+    doc.setLineWidth(0.6);
+    doc.line(margin, 36, pageWidth - margin, 36);
+
+    // --- Summary cards ---
+    const cardY = 41;
+    const cardHeight = 28;
+    const cardWidth = (pageWidth - margin * 2 - 4) / 2;
+
+    // Card 1: Resident Reference
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(margin, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("RESIDENT REFERENCE", margin + 4, cardY + 6);
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text(r.name || 'N/A', margin + 4, cardY + 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Registered:  ${r.date_registered || 'N/A'}`, margin + 4, cardY + 20);
+    doc.text(`Gender:  ${r.gender || 'N/A'}`, margin + 4, cardY + 25);
+
+    // Card 2: Status
+    const card2X = margin + cardWidth + 4;
+    doc.setDrawColor(219, 228, 240);
+    doc.setFillColor(248, 251, 255);
+    doc.rect(card2X, cardY, cardWidth, cardHeight, 'FD');
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text("CURRENT STATUS", card2X + 4, cardY + 6);
+
+    // Status badge
+    doc.setFontSize(8);
+    const badgeText = statusLabel;
+    const badgeWidth = doc.getTextWidth(badgeText) + 6;
+    doc.setFillColor(...sc.bg);
+    doc.setDrawColor(...sc.border);
+    doc.setLineWidth(0.3);
+    doc.rect(card2X + 4, cardY + 9, badgeWidth, 6, 'FD');
+    doc.setTextColor(...sc.text);
+    doc.setFont("helvetica", "bold");
+    doc.text(badgeText, card2X + 7, cardY + 13.3);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Generated:  ${generatedAt}`, card2X + 4, cardY + 21);
+    doc.text("System:  Barangay User Records", card2X + 4, cardY + 26);
+
+    // --- Section: Resident Information ---
+    let y = cardY + cardHeight + 10;
+    const drawSectionTitle = (text) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(text, margin, y);
+        doc.setDrawColor(219, 228, 240);
+        doc.setLineWidth(0.4);
+        doc.line(margin, y + 2, pageWidth - margin, y + 2);
+        y += 5;
     };
 
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("times", "bold");
-    doc.setFontSize(14);
-    doc.text("RESIDENT INFORMATION", 15, y);
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(15, y + 3, 195, y + 3);
-    y += 12;
+    drawSectionTitle("Resident Information");
+    doc.autoTable({
+        startY: y,
+        theme: 'grid',
+        head: [],
+        body: [
+            ["Full Name", r.name || 'N/A'],
+            ["Email", r.email || 'N/A'],
+            ["Contact Number", r.contact || 'N/A'],
+            ["Gender", r.gender || 'N/A'],
+            ["Date Registered", r.date_registered || 'N/A'],
+            ["Date Approved", r.date_approved || 'N/A'],
+        ],
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            lineColor: [226, 232, 240],
+            lineWidth: 0.2,
+            textColor: [15, 23, 42],
+        },
+        columnStyles: {
+            0: {
+                cellWidth: 55,
+                fillColor: [241, 245, 249],
+                textColor: [100, 116, 139],
+                fontStyle: 'bold',
+                fontSize: 8,
+            },
+            1: { fillColor: [248, 250, 252] },
+        },
+        margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 8;
 
-    printRow("Full Name:", r.name);
-    printRow("Status:", r.status);
-    printRow("Email:", r.email);
-    printRow("Contact Number:", r.contact);
-    printRow("Gender:", r.gender);
-    printRow("Date Registered:", r.date_registered);
-    if(r.date_approved) printRow("Date Approved:", r.date_approved);
-    
-    y += 5;
-    doc.setFont("times", "bold");
-    doc.setFontSize(14);
-    doc.text("ADDRESS DETAILS", 15, y);
-    doc.line(15, y + 3, 195, y + 3);
-    y += 12;
-    printRow("Full Address:", r.address);
+    drawSectionTitle("Address Details");
+    doc.autoTable({
+        startY: y,
+        theme: 'grid',
+        head: [],
+        body: [
+            ["Full Address", r.address || 'N/A'],
+        ],
+        styles: {
+            fontSize: 9,
+            cellPadding: 3,
+            lineColor: [226, 232, 240],
+            lineWidth: 0.2,
+            textColor: [15, 23, 42],
+        },
+        columnStyles: {
+            0: {
+                cellWidth: 55,
+                fillColor: [241, 245, 249],
+                textColor: [100, 116, 139],
+                fontStyle: 'bold',
+                fontSize: 8,
+            },
+            1: { fillColor: [248, 250, 252] },
+        },
+        margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    if (status === 'rejected' && r.rejection_reason) {
+        drawSectionTitle("Rejection Reason");
+        doc.setFillColor(254, 242, 242);
+        doc.setDrawColor(252, 165, 165);
+        const reasonLines = doc.splitTextToSize(r.rejection_reason, pageWidth - margin * 2 - 8);
+        const boxHeight = reasonLines.length * 5 + 8;
+        doc.rect(margin, y, pageWidth - margin * 2, boxHeight, 'FD');
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(153, 27, 27);
+        doc.text(reasonLines, margin + 4, y + 6);
+        y += boxHeight + 6;
+    }
 
     // --- Footer ---
-    const now = new Date();
+    doc.setDrawColor(219, 228, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Document generated securely by CiviReport Admin System on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 285);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`This is a computer-generated document from CiviReport. Generated on ${generatedAt}.`,
+        pageWidth / 2, pageHeight - 9, { align: 'center' });
 
-    doc.save(`Resident_Profile_${r.name.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`Resident_Profile_${(r.name || 'Resident').replace(/\s+/g, '_')}.pdf`);
   };
   // ===== Auto-open modal from URL query param =====
   const urlParams = new URLSearchParams(window.location.search);

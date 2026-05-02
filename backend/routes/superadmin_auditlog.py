@@ -28,9 +28,11 @@ def _normalize_status(value: Optional[str]) -> Optional[str]:
 
     lowered = text.lower()
     if lowered in {"approved", "active", "reactivated", "resolved"}:
-        return "active"
+        return "approved"
     if lowered in {"inactive", "deactivated"}:
-        return "inactive"
+        return "deactivated"
+    if lowered == "rejected":
+        return "rejected"
     return lowered
 
 
@@ -40,9 +42,9 @@ def _legacy_status_from_action(action: Optional[str]) -> Optional[str]:
 
 def _legacy_action_note(action: Optional[str]) -> str:
     normalized = _normalize_status(action)
-    if normalized == "active":
+    if normalized == "approved":
         return "Account activated"
-    if normalized == "inactive":
+    if normalized == "deactivated":
         return "Account deactivated"
     if normalized == "deleted":
         return "Deleted Barangay Admin account"
@@ -162,7 +164,15 @@ def get_superadmin_audit_logs(
 
     normalized_status = _normalize_status(status)
     if normalized_status:
-        query = query.filter(func.lower(cast(new_status_expr, String)) == normalized_status)
+        # Match both canonical and legacy stored values so historical rows still surface.
+        equivalents = {
+            "approved": ["approved", "active", "reactivated", "resolved"],
+            "deactivated": ["deactivated", "inactive"],
+            "rejected": ["rejected"],
+            "pending": ["pending"],
+            "deleted": ["deleted"],
+        }.get(normalized_status, [normalized_status])
+        query = query.filter(func.lower(cast(new_status_expr, String)).in_(equivalents))
 
     parsed_from = _parse_date_boundary(date_from, "start")
     if parsed_from is not None:
