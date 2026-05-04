@@ -5,11 +5,13 @@ use Illuminate\Support\Facades\Http;
 class FastApiService
 {
     protected $baseUrl;
+    protected $adminBackendUrl;
     protected $internalApiKey;
 
     public function __construct()
     {
-        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8001');
+        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
+        $this->adminBackendUrl = env('ADMIN_BACKEND_URL', 'http://127.0.0.1:8002');
         $this->internalApiKey = env('INTERNAL_API_KEY');
     }
 
@@ -271,5 +273,44 @@ class FastApiService
     public function markUserNotified($id)
     {
         return $this->client()->patch("/notifications/users/{$id}/notified")->json();
+    }
+
+    protected function adminClient($timeout = 10)
+    {
+        $headers = [
+            'X-Internal-Key' => $this->internalApiKey,
+        ];
+
+        return Http::timeout($timeout)
+            ->baseUrl($this->adminBackendUrl)
+            ->acceptJson()
+            ->withHeaders($headers);
+    }
+
+    public function sendComplaintNotification($userId, $complaintId, $status, $title, $description)
+    {
+        return $this->adminClient()->post('/complaints/internal/notify', [
+            'user_id' => $userId,
+            'message' => [
+                'type' => 'status_update',
+                'complaint_id' => $complaintId,
+                'status' => $status,
+                'title' => $title,
+                'description' => $description,
+            ],
+        ]);
+    }
+
+    public function sendAnnouncementBroadcast($title, $description, $eventDate, $venue)
+    {
+        return $this->adminClient()->post('/complaints/internal/broadcast', [
+            'message' => [
+                'type' => 'announcement',
+                'title' => $title,
+                'description' => $description,
+                'event_date' => $eventDate,
+                'venue' => $venue,
+            ],
+        ]);
     }
 }
