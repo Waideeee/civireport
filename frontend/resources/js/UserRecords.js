@@ -109,33 +109,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!container) {
       container = document.createElement('div');
       container.id = 'toast-container';
-      container.style.cssText = `
-        position: fixed; bottom: 28px; right: 28px;
-        display: flex; flex-direction: column; gap: 10px;
-        z-index: 9999; pointer-events: none;
-      `;
+      container.className = 'ur-toast-container';
       document.body.appendChild(container);
     }
     const toast = document.createElement('div');
-    const bg = type === 'success' ? '#22c55e' : '#ef4444';
-    toast.style.cssText = `
-      background: ${bg}; color: #fff;
-      padding: 12px 20px; border-radius: 10px;
-      font-size: 0.84rem; font-weight: 600;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      opacity: 0; transform: translateY(10px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
-      pointer-events: none;
-    `;
+    toast.className = `ur-toast ur-toast--${type}`;
     toast.textContent = message;
     container.appendChild(toast);
     requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
+      toast.classList.add('ur-toast--visible');
     });
     setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
+      toast.classList.remove('ur-toast--visible');
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }

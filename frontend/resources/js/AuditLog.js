@@ -47,7 +47,7 @@ function statusBadge(status) {
 
   let html = `<span class="audit-badge ${cls}">${escapeHtml(baseStatus)}</span>`;
   if (extraText) {
-    html += `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; font-weight: 500;">${escapeHtml(extraText)}</div>`;
+    html += `<div class="al-extra-text">${escapeHtml(extraText)}</div>`;
   }
   return html;
 }
@@ -132,7 +132,7 @@ function renderTable() {
           <td class="al-td">${escapeHtml(r.admin_name || r.user_name || r.user_full_name || "System")}</td>
           <td class="al-td ${r.complaint_id || r.emergency_id ? 'al-mono' : ''}">${escapeHtml(referenceLabel(r))}</td>
           <td class="al-td">${statusBadge(r.old_status)}</td>
-          <td class="al-td">${statusBadge(r.new_status)}${r.action_notes ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; max-width: 200px; white-space: normal; line-height: 1.2;">Note: ${escapeHtml(r.action_notes)}</div>` : ''}</td>
+          <td class="al-td">${statusBadge(r.new_status)}${r.action_notes ? `<div class="al-note-text">Note: ${escapeHtml(r.action_notes)}</div>` : ''}</td>
         </tr>`).join("")
     : `<tr><td colspan="6" class="al-empty">No audit log entries found matching your search.</td></tr>`;
 

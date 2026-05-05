@@ -13,35 +13,6 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 def _non_admin_role_expr():
     return or_(~func.lower(cast(User.role, String)).in_(tuple(ADMIN_ROLES)), User.role.is_(None))
 
-@router.get("/test_generate")
-def test_generate(db: Session = Depends(get_db)):
-    try:
-        import time
-        timestamp = int(time.time())
-        new_user = User(
-            user_name=f"Test Resident {timestamp}",
-            email=f"test_{timestamp}@example.com",
-            password="dummy_password",
-            contact_num="1234567890",
-            status="pending",
-            role="resident",
-            date_registered=datetime.utcnow()
-        )
-        db.add(new_user)
-        db.commit()
-        
-        new_complaint = Complaint(
-            user_id=new_user.user_id,
-            complaint_type="Noise Disturbance",
-            complaint_status="pending",
-            created_at=datetime.utcnow()
-        )
-        db.add(new_complaint)
-        db.commit()
-        return {"status": "success", "msg": "Generated test data!"}
-    except Exception as e:
-        return {"status": "error", "msg": str(e)}
-
 @router.get("/complaints/latest")
 def get_latest_complaint_notification(db: Session = Depends(get_db)):
     # Find all pending complaints that haven't been notified yet

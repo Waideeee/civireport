@@ -1,16 +1,22 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 import requests
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from database import get_db
 from models.announcement import Announcement
 from models.user import User
-from schemas.announcement import AnnouncementResponse, AnnouncementCreate, AnnouncementUpdate
-from typing import List
+from schemas.announcement import (
+    AnnouncementCreate,
+    AnnouncementResponse,
+    AnnouncementUpdate,
+)
+from security import require_admin_actor
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -20,11 +26,16 @@ INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
 router = APIRouter(prefix="/announcements", tags=["Announcements"])
 
 
-def _send_announcement_broadcast(title: str, description: str, event_date: str, venue: str):
+def _send_announcement_broadcast(
+    title: str, description: str, event_date: str, venue: str
+):
     try:
         requests.post(
             f"{ADMIN_BACKEND_URL}/complaints/internal/broadcast",
-            headers={"X-Internal-Key": INTERNAL_API_KEY, "Content-Type": "application/json"},
+            headers={
+                "X-Internal-Key": INTERNAL_API_KEY,
+                "Content-Type": "application/json",
+            },
             json={
                 "message": {
                     "type": "announcement",
@@ -38,6 +49,7 @@ def _send_announcement_broadcast(title: str, description: str, event_date: str, 
         )
     except Exception:
         pass
+
 
 @router.get("/", response_model=List[AnnouncementResponse])
 def get_announcements(db: Session = Depends(get_db)):
@@ -64,11 +76,28 @@ def get_announcements(db: Session = Depends(get_db)):
         for announcement, creator in announcements
     ]
 
-@router.post("/", response_model=AnnouncementResponse)
-def create_announcement(payload: AnnouncementCreate, db: Session = Depends(get_db)):
-    actor = db.query(User).filter(User.user_id == payload.admin_id).first() if payload.admin_id else None
+
+@router.post(
+    "/",
+    response_model=AnnouncementResponse,
+    dependencies=[Depends(require_admin_actor)],
+)
+def create_announcement(
+    payload: AnnouncementCreate,
+    db: Session = Depends(get_db),
+    x_civireport_actor_id: str | None = Header(
+        default=None, alias="X-CiviReport-Actor-Id"
+    ),
+):
+    try:
+        actor_id = int(x_civireport_actor_id) if x_civireport_actor_id else None
+    except (ValueError, TypeError):
+        actor_id = None
+    actor = (
+        db.query(User).filter(User.user_id == actor_id).first() if actor_id else None
+    )
     announcement = Announcement(
-        user_id=payload.admin_id,
+        user_id=actor_id,
         user_name=actor.user_name if actor else None,
         announcement_title=payload.title,
         announcement_category=payload.category,
@@ -103,14 +132,36 @@ def create_announcement(payload: AnnouncementCreate, db: Session = Depends(get_d
         "creator_role": actor.role if actor else None,
     }
 
-@router.put("/{announcement_id}", response_model=AnnouncementResponse)
-def update_announcement(announcement_id: int, payload: AnnouncementUpdate, db: Session = Depends(get_db)):
-    announcement = db.query(Announcement).filter(Announcement.announcement_id == announcement_id).first()
+
+@router.put(
+    "/{announcement_id}",
+    response_model=AnnouncementResponse,
+    dependencies=[Depends(require_admin_actor)],
+)
+def update_announcement(
+    announcement_id: int,
+    payload: AnnouncementUpdate,
+    db: Session = Depends(get_db),
+    x_civireport_actor_id: str | None = Header(
+        default=None, alias="X-CiviReport-Actor-Id"
+    ),
+):
+    announcement = (
+        db.query(Announcement)
+        .filter(Announcement.announcement_id == announcement_id)
+        .first()
+    )
     if not announcement:
         raise HTTPException(status_code=404, detail="Announcement not found")
 
-    actor = db.query(User).filter(User.user_id == payload.admin_id).first() if payload.admin_id else None
-    announcement.user_id = payload.admin_id
+    try:
+        actor_id = int(x_civireport_actor_id) if x_civireport_actor_id else None
+    except (ValueError, TypeError):
+        actor_id = None
+    actor = (
+        db.query(User).filter(User.user_id == actor_id).first() if actor_id else None
+    )
+    announcement.user_id = actor_id
     announcement.user_name = actor.user_name if actor else announcement.user_name
     announcement.announcement_title = payload.title
     announcement.announcement_category = payload.category

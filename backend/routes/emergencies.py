@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models.emergency import Emergency
 from models.user import User
 from models.auditlog import AuditLog
 from schemas.emergency import EmergencyResponse, EmergencyStatusUpdate
+from security import require_admin_actor
 from datetime import datetime
 
 router = APIRouter(prefix="/emergencies", tags=["Emergencies"])
@@ -48,35 +49,41 @@ def get_pending_emergencies(db: Session = Depends(get_db)):
     )
     return [emergency_to_dict(e, u) for e, u in results]
 
-@router.patch("/{emergency_id}/status")
-def update_emergency_status(emergency_id: int, payload: dict, db: Session = Depends(get_db)):
+@router.patch("/{emergency_id}/status", dependencies=[Depends(require_admin_actor)])
+def update_emergency_status(
+    emergency_id: int,
+    payload: EmergencyStatusUpdate,
+    db: Session = Depends(get_db),
+    x_civireport_actor_id: str | None = Header(default=None, alias="X-CiviReport-Actor-Id"),
+):
     emergency = db.query(Emergency).filter(Emergency.emergency_id == emergency_id).first()
     if not emergency:
         return {"error": "Emergency not found"}
 
     old_status = emergency.status
-    new_status = payload.get("status")
+    new_status = payload.status
 
-    admin_id = payload.get("admin_id")
-    if not admin_id:
-        raise HTTPException(status_code=400, detail="Admin ID is required for emergency status updates.")
-    
+    try:
+        admin_id = int(x_civireport_actor_id) if x_civireport_actor_id else None
+    except (ValueError, TypeError):
+        admin_id = None
+
     if new_status:
         emergency.status = new_status
         if new_status in ["resolved", "false_alarm"]:
             emergency.resolved_at = datetime.utcnow()
-            
-    if payload.get("notes"):
-        emergency.notes = payload.get("notes")
 
-    if payload.get("resolution_notes"):
-        emergency.resolution_notes = payload.get("resolution_notes")
+    if payload.notes:
+        emergency.notes = payload.notes
+
+    if payload.resolution_notes:
+        emergency.resolution_notes = payload.resolution_notes
 
     # Record Audit Log if status changed
     if new_status and old_status != new_status:
         now = datetime.utcnow()
-        audit_action_notes = payload.get("resolution_notes") or payload.get("notes")
-        actor = db.query(User).filter(User.user_id == admin_id).first()
+        audit_action_notes = payload.resolution_notes or payload.notes
+        actor = db.query(User).filter(User.user_id == admin_id).first() if admin_id else None
         log = AuditLog(
             emergency_id = emergency_id,
             old_status = old_status,
@@ -92,5 +99,5 @@ def update_emergency_status(emergency_id: int, payload: dict, db: Session = Depe
 
     db.commit()
     db.refresh(emergency)
-    
+
     return {"message": "Status updated", "emergency_id": emergency_id, "status": emergency.status}

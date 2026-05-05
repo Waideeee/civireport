@@ -1,9 +1,13 @@
+from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 import datetime
 from fastapi.encoders import ENCODERS_BY_TYPE
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from limiter_instance import limiter
 
 # Globally format all datetime objects to standard YYYY-MM-DD HH:MM:SS string
 ENCODERS_BY_TYPE[datetime.datetime] = lambda dt: dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -35,7 +39,24 @@ from schema_alignment import (
     sync_users_user_id_sequence,
 )
 
-app = FastAPI(title="CiviReport API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        ensure_user_verification_columns()
+        ensure_superadmin_audit_log_columns()
+        sync_users_user_id_sequence()
+        auto_resolve_rated_complaints()
+    except Exception as exc:
+        print(f"Startup schema alignment error: {exc}")
+    start_scheduler()
+    yield
+    stop_scheduler()
+
+
+app = FastAPI(title="CiviReport API", lifespan=lifespan)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -97,22 +118,6 @@ app.include_router(
 )
 
 from scheduler import start_scheduler, stop_scheduler
-
-@app.on_event("startup")
-def startup_event():
-    try:
-        ensure_user_verification_columns()
-        ensure_superadmin_audit_log_columns()
-        sync_users_user_id_sequence()
-        auto_resolve_rated_complaints()
-    except Exception as exc:
-        print(f"Startup schema alignment error: {exc}")
-    start_scheduler()
-
-
-@app.on_event("shutdown")
-def shutdown_event():
-    stop_scheduler()
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

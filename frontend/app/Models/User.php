@@ -48,16 +48,9 @@ class User extends Authenticatable
         'contact_num',  
         'address', 
         'barangay',
-        'password',     
-        'role',         
-        'is_active',    
-        'status',
-        'approved_at',
+        'password',              
         'rejection_reason',
         'profile_photo_path',
-        'email_verified_at',
-        'email_verification_token',
-        'email_verification_token_expires',
     ];
 
     /**

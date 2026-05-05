@@ -18,3 +18,11 @@ class AuditLogResponse(BaseModel):
     user_role: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogCreate(BaseModel):
+    complaint_id: Optional[int] = None
+    emergency_id: Optional[int] = None
+    old_status:   Optional[str] = None
+    new_status:   Optional[str] = None
+    action_notes: Optional[str] = None

@@ -66,6 +66,10 @@ class FortifyServiceProvider extends ServiceProvider
                     return null;
                 }
             } catch (\RuntimeException $e) {
+                \Illuminate\Support\Facades\Log::warning('Password hash check failed during login.', [
+                    'email'   => $request->email,
+                    'message' => $e->getMessage(),
+                ]);
                 return null;
             }
 

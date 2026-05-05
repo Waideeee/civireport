@@ -1,5 +1,6 @@
 import base64
 import binascii
+import io
 import os
 import secrets
 import time
@@ -9,6 +10,7 @@ from pathlib import Path
 import requests
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from dotenv import load_dotenv
+from PIL import Image
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
@@ -105,7 +107,17 @@ def _save_resolution_media(complaint_id: int, action_proof: str) -> str:
 
     filename = f"resolution_{complaint_id}_{int(time.time())}_{secrets.token_hex(4)}.{detected_extension}"
     filepath = uploads_dir / filename
-    filepath.write_bytes(file_data)
+
+    _pillow_format = {"jpg": "JPEG", "png": "PNG", "webp": "WEBP"}
+    try:
+        img = Image.open(io.BytesIO(file_data))
+        img = img.convert("RGB")
+        img.save(filepath, format=_pillow_format[detected_extension])
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Proof image could not be processed.") from exc
+
     return filename
 
 
@@ -124,16 +136,20 @@ def _build_media_url(file_path: str | None) -> str:
         return ""
 
     normalized_path = str(file_path).strip()
-    lowered_path = normalized_path.lower()
 
-    if lowered_path.startswith("http://") or lowered_path.startswith("https://"):
+    if normalized_path.lower().startswith("http://") or normalized_path.lower().startswith("https://"):
         return normalized_path
 
     cleaned_path = normalized_path.replace("\\", "/").lstrip("/")
     if cleaned_path.lower().startswith("uploads/"):
         cleaned_path = cleaned_path[8:]
 
-    return f"{BASE_URL}/uploads/{cleaned_path.lstrip('/')}"
+    filename = cleaned_path.lstrip("/")
+
+    if filename.startswith("complaint_"):
+        return f"http://192.168.1.146:8002/uploads/{filename}"
+
+    return f"http://192.168.1.146:8001/uploads/{filename}"
 
 
 def _append_resolution_note(existing_notes: str | None, new_note: str, now: datetime) -> str:

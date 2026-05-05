@@ -52,10 +52,10 @@ async def _send_html_email(subject: str, recipients: list[str], body: str) -> bo
         )
         fm = FastMail(conf)
         await fm.send_message(message)
-        logger.info("Successfully sent email '%s' to %s", subject, ", ".join(recipients))
+        logger.info("Successfully sent email '%s' to [redacted]", subject)
         return True
     except Exception as e:
-        logger.error("Failed to send email '%s' to %s. Error: %s", subject, ", ".join(recipients), str(e))
+        logger.error("Failed to send email '%s' to [redacted]. Error: %s", subject, str(e))
         return False
 
 
@@ -245,10 +245,10 @@ async def send_complaint_update_email(
 
         fm = FastMail(conf)
         await fm.send_message(message)
-        logger.info(f"Successfully sent {new_status} update email to {user_email} for complaint #{complaint_id}")
-        
+        logger.info(f"Successfully sent {new_status} update email to [redacted] for complaint #{complaint_id}")
+
     except Exception as e:
-        logger.error(f"Failed to send email to {user_email} for complaint #{complaint_id}. Error: {str(e)}")
+        logger.error(f"Failed to send email to [redacted] for complaint #{complaint_id}. Error: {str(e)}")
 
 async def send_account_resolved_email(
     user_email: str,
@@ -259,7 +259,7 @@ async def send_account_resolved_email(
         return
         
     if not conf:
-        logger.warning(f"SMTP configuration is incomplete. Skipping account email for {user_email}.")
+        logger.warning("SMTP configuration is incomplete. Skipping account email for [redacted].")
         return
 
     try:
@@ -280,10 +280,10 @@ async def send_account_resolved_email(
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="user_resolved.html")
-        logger.info(f"Successfully sent account email to {user_email}")
-        
+        logger.info("Successfully sent account email to [redacted]")
+
     except Exception as e:
-        logger.error(f"Failed to send account email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send account email to [redacted]. Error: {str(e)}")
 
 async def send_auto_resolved_email(
     user_email: str,
@@ -310,10 +310,10 @@ async def send_auto_resolved_email(
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="auto_resolved.html")
-        logger.info(f"Successfully sent auto-resolution email to {user_email}")
-        
+        logger.info("Successfully sent auto-resolution email to [redacted]")
+
     except Exception as e:
-        logger.error(f"Failed to send auto-resolution email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send auto-resolution email to [redacted]. Error: {str(e)}")
 
 async def send_new_complaint_email(
     user_email: str,
@@ -340,10 +340,10 @@ async def send_new_complaint_email(
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="pending.html")
-        logger.info(f"Successfully sent new complaint email to {user_email}")
-        
+        logger.info("Successfully sent new complaint email to [redacted]")
+
     except Exception as e:
-        logger.error(f"Failed to send new complaint email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send new complaint email to [redacted]. Error: {str(e)}")
 
 async def send_verification_email(
     user_email: str,
@@ -368,10 +368,10 @@ async def send_verification_email(
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="verify_email.html")
-        logger.info(f"Successfully sent verification email to {user_email}")
-        
+        logger.info("Successfully sent verification email to [redacted]")
+
     except Exception as e:
-        logger.error(f"Failed to send verification email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send verification email to [redacted]. Error: {str(e)}")
 
 async def send_account_verified_email(
     user_email: str,
@@ -399,10 +399,10 @@ async def send_account_verified_email(
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="account_verified.html")
-        logger.info(f"Successfully sent account verified email to {user_email}")
-        
+        logger.info("Successfully sent account verified email to [redacted]")
+
     except Exception as e:
-        logger.error(f"Failed to send account verified email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send account verified email to [redacted]. Error: {str(e)}")
 
 
 async def send_barangay_admin_created_email(
@@ -417,7 +417,7 @@ async def send_barangay_admin_created_email(
         return
 
     if not conf:
-        logger.warning(f"SMTP configuration is incomplete. Skipping barangay admin welcome email for {user_email}.")
+        logger.warning("SMTP configuration is incomplete. Skipping barangay admin welcome email for [redacted].")
         return
 
     try:
@@ -456,7 +456,7 @@ async def send_barangay_admin_created_email(
 
         fm = FastMail(conf)
         await fm.send_message(message)
-        logger.info(f"Successfully sent barangay admin account email to {user_email}")
+        logger.info("Successfully sent barangay admin account email to [redacted]")
 
     except Exception as e:
-        logger.error(f"Failed to send barangay admin account email to {user_email}. Error: {str(e)}")
+        logger.error(f"Failed to send barangay admin account email to [redacted]. Error: {str(e)}")

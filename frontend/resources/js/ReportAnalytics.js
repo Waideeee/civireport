@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data.service_rating_distribution.values || []
           );
         }
+        updateExplanations(data);
       })
       .catch(error => {
         console.error('Failed to refresh analytics data:', error);
@@ -448,6 +449,81 @@ document.addEventListener('DOMContentLoaded', function () {
       year: 'numeric', month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit',
     })}`;
+  }
+
+  // ===== Chart Explanation Updaters =====
+
+  function updateExplanations(data) {
+    const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    if (data.by_category) {
+      set('explanation-category', buildCategoryExplanation(data.by_category.labels || [], data.by_category.values || []));
+    }
+    if (data.summary) {
+      set('explanation-status', buildStatusExplanation(data.summary));
+    }
+    if (data.monthly) {
+      set('explanation-trend', buildTrendExplanation(data.monthly.labels || [], data.monthly.values || []));
+    }
+    if (data.service_rating_distribution) {
+      set('explanation-service-rating', buildServiceRatingExplanation(
+        data.service_rating_distribution.labels || [],
+        data.service_rating_distribution.values || []
+      ));
+    }
+  }
+
+  function buildCategoryExplanation(labels, values) {
+    const total = values.reduce((a, b) => a + b, 0);
+    if (!total) return 'No sufficient complaints yet to identify the leading category.';
+    const maxVal = Math.max(...values);
+    const maxIdx = values.indexOf(maxVal);
+    const minVal = Math.min(...values);
+    const minIdx = values.indexOf(minVal);
+    let text = `The "${labels[maxIdx]}" category has the highest number of complaints with ${maxVal} cases.`;
+    if (maxIdx !== minIdx) text += ` The lowest is "${labels[minIdx]}" with ${minVal} cases.`;
+    return text;
+  }
+
+  function buildStatusExplanation(summary) {
+    const total    = summary.total       || 0;
+    const resolved = summary.resolved    || 0;
+    const pending  = summary.pending     || 0;
+    const inProg   = summary.in_progress || 0;
+    const rejected = summary.rejected    || 0;
+    if (!total) return 'No complaints have been received yet.';
+    const rate = Math.round((resolved / total) * 100);
+    let text = `Out of ${total} total complaints, ${resolved} have been resolved (${rate}% resolution rate). There are still ${pending} pending and ${inProg} currently in progress.`;
+    if (rejected > 0) text += ` ${rejected} were rejected.`;
+    return text;
+  }
+
+  function buildTrendExplanation(labels, values) {
+    const total = values.reduce((a, b) => a + b, 0);
+    if (!total) return 'No sufficient data yet to show the monthly complaints trend.';
+    const peakVal   = Math.max(...values);
+    const peakIdx   = values.indexOf(peakVal);
+    const lastIdx   = values.length - 1;
+    const lastVal   = values[lastIdx];
+    const lastLabel = labels[lastIdx] || '';
+    let text = `The highest number of complaints was received in ${labels[peakIdx]} with ${peakVal} cases.`;
+    if (peakIdx !== lastIdx && lastLabel) text += ` In ${lastLabel}, ${lastVal} ${lastVal === 1 ? 'complaint' : 'complaints'} were received.`;
+    return text;
+  }
+
+  function buildServiceRatingExplanation(labels, values) {
+    const total = values.reduce((a, b) => a + b, 0);
+    if (!total) return 'No service ratings have been submitted by residents yet.';
+    const maxVal    = Math.max(...values);
+    const maxIdx    = values.indexOf(maxVal);
+    const rawLbl    = String(labels[maxIdx] ?? (maxIdx + 1));
+    const ratingNum = rawLbl.replace('STAR_', '') || String(maxIdx + 1);
+    let wSum = 0;
+    values.forEach((v, i) => {
+      const stars = parseInt(String(labels[i] ?? (i + 1)).replace('STAR_', ''), 10) || (i + 1);
+      wSum += stars * v;
+    });
+    const avg = (wSum / total).toFixed(1);
+    return `Most residents gave a ${ratingNum}-star rating (${maxVal} votes). The average service rating is ${avg} stars from ${total} residents who provided feedback.`;
   }
 
   // ===== Download Report (CiviReport-branded PDF) =====

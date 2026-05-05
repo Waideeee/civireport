@@ -1,6 +1,6 @@
 from datetime import datetime, date
 
-from fastapi import APIRouter, Depends, BackgroundTasks, Header
+from fastapi import APIRouter, Depends, BackgroundTasks, Header, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, String
 from database import get_db
@@ -12,6 +12,7 @@ from typing import List
 from mailer import send_account_resolved_email, send_account_verified_email, send_verification_email
 from pydantic import BaseModel
 from security import ADMIN_ROLES, require_admin_actor, require_superadmin_actor
+from limiter_instance import limiter
 
 class VerificationRequest(BaseModel):
     email: str
@@ -199,8 +200,9 @@ def delete_barangay_admin(
     db.commit()
     return {"message": "Barangay admin deleted.", "user_id": deleted_user_id}
 
-@router.post("/send-verification")
-async def trigger_verification_email(payload: VerificationRequest, background_tasks: BackgroundTasks):
+@router.post("/send-verification", dependencies=[Depends(require_admin_actor)])
+@limiter.limit("10/minute")
+async def trigger_verification_email(request: Request, payload: VerificationRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(
         send_verification_email,
         user_email=payload.email,
@@ -209,8 +211,9 @@ async def trigger_verification_email(payload: VerificationRequest, background_ta
     )
     return {"message": "Verification email queued"}
 
-@router.post("/send-verification-success")
-async def trigger_verification_success_email(payload: VerificationSuccessRequest, background_tasks: BackgroundTasks):
+@router.post("/send-verification-success", dependencies=[Depends(require_admin_actor)])
+@limiter.limit("10/minute")
+async def trigger_verification_success_email(request: Request, payload: VerificationSuccessRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(
         send_account_verified_email,
         user_email=payload.email,
