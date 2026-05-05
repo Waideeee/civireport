@@ -20,8 +20,6 @@ class UserResponse(BaseModel):
     profile_photo_path: Optional[str] = None
     profile_photo_url: Optional[str] = None
     rejection_reason: Optional[str]
-    email_verification_token: Optional[str] = None
-    email_verification_token_expires: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 

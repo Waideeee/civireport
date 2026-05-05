@@ -5,29 +5,80 @@ use Illuminate\Support\Facades\Http;
 class FastApiService
 {
     protected $baseUrl;
+    protected $adminBackendUrl;
     protected $internalApiKey;
 
     public function __construct()
     {
         $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8001');
+        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
+        $this->adminBackendUrl = env('ADMIN_BACKEND_URL', 'http://127.0.0.1:8002');
         $this->internalApiKey = env('INTERNAL_API_KEY');
     }
 
     protected function client($timeout = 10)
     {
-        $headers = [
-            'X-CiviReport-Internal-Key' => $this->internalApiKey,
-        ];
+        $timestamp = (string) time();
+        $actorId = '';
+        $role = '';
 
         if (Auth::check()) {
-            $headers['X-CiviReport-Actor-Id'] = (string) Auth::id();
-            $headers['X-CiviReport-Actor-Role'] = strtolower((string) (Auth::user()->role ?? ''));
+            $actorId = (string) Auth::id();
+            $role = strtolower((string) (Auth::user()->role ?? ''));
         }
+
+        $payload = $timestamp . '|' . $actorId . '|' . $role;
+        $signature = hash_hmac('sha256', $payload, (string) $this->internalApiKey);
+
+        $headers = [
+            'X-CiviReport-Timestamp'  => $timestamp,
+            'X-CiviReport-Actor-Id'   => $actorId,
+            'X-CiviReport-Actor-Role' => $role,
+            'X-CiviReport-Signature'  => $signature,
+        ];
 
         return Http::timeout($timeout)
             ->baseUrl($this->baseUrl)
             ->acceptJson()
             ->withHeaders($headers);
+    }
+
+    protected function adminClient($timeout = 10)
+    {
+        $headers = [
+            'X-Internal-Key' => $this->internalApiKey,
+        ];
+        return Http::timeout($timeout)
+            ->baseUrl($this->adminBackendUrl)
+            ->acceptJson()
+            ->withHeaders($headers);
+    }
+
+    public function sendComplaintNotification($userId, $complaintId, $status, $title, $description)
+    {
+        return $this->adminClient()->post('/complaints/internal/notify', [
+            'user_id' => $userId,
+            'message' => [
+                'type' => 'status_update',
+                'complaint_id' => $complaintId,
+                'status' => $status,
+                'title' => $title,
+                'description' => $description,
+            ],
+        ]);
+    }
+
+    public function sendAnnouncementBroadcast($title, $description, $eventDate, $venue)
+    {
+        return $this->adminClient()->post('/complaints/internal/broadcast', [
+            'message' => [
+                'type' => 'announcement',
+                'title' => $title,
+                'description' => $description,
+                'event_date' => $eventDate,
+                'venue' => $venue,
+            ],
+        ]);
     }
 
     public function getDashboardUserStats()

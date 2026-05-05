@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
 from models.auditlog import AuditLog
 from models.user import User
-from schemas.auditlog import AuditLogResponse
+from schemas.auditlog import AuditLogCreate, AuditLogResponse
+from security import require_internal_api_key
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
 
@@ -43,14 +44,30 @@ def get_audit_logs(db: Session = Depends(get_db)):
         for audit, actor_name, actor_role in results
     ]
 
-@router.post("/")
-def create_audit_log(payload: dict, db: Session = Depends(get_db)):
+@router.post("/", dependencies=[Depends(require_internal_api_key)])
+def create_audit_log(
+    payload: AuditLogCreate,
+    x_civireport_actor_id: str | None = Header(default=None, alias="X-CiviReport-Actor-Id"),
+    db: Session = Depends(get_db),
+):
+    try:
+        actor_id = int(x_civireport_actor_id) if x_civireport_actor_id else None
+    except (ValueError, TypeError):
+        actor_id = None
+
+    derived_name = None
+    if actor_id:
+        user = db.query(User).filter(User.user_id == actor_id).first()
+        derived_name = user.user_name if user else None
+
     log = AuditLog(
-        complaint_id = payload.get("complaint_id"),
-        old_status   = payload.get("old_status"),
-        new_status   = payload.get("new_status"),
-        user_id      = payload.get("user_id") or payload.get("admin_id"),
-        user_name    = payload.get("user_name"),
+        complaint_id = payload.complaint_id,
+        emergency_id = payload.emergency_id,
+        old_status   = payload.old_status,
+        new_status   = payload.new_status,
+        action_notes = payload.action_notes,
+        user_id      = actor_id,
+        user_name    = derived_name,
     )
     db.add(log)
     db.commit()

@@ -378,6 +378,17 @@
   margin-bottom: 16px;
 }
 
+.chart-explanation {
+  margin: 14px 0 0 0;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: #6b7280;
+  background: #f9fafb;
+  border-left: 3px solid #3b82f6;
+  border-radius: 0 6px 6px 0;
+}
+
 .chart-container {
   position: relative;
   width: 100%;

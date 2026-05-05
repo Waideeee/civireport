@@ -17,21 +17,20 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   }
 
-  function buildUploadUrl(rawPath) {
+function buildUploadUrl(rawPath) {
     const raw = String(rawPath || '').replace(/\\/g, '/').trim();
     if (!raw) return '';
 
-    // If backend already returned a full URL, use it as-is.
-    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^https?:\/\//i.test(raw)) return raw; // kung full URL na, gamitin na
 
     const normalized = raw
-      .split('/')
-      .filter(Boolean)
-      .map(segment => encodeURIComponent(segment))
-      .join('/');
+        .split('/')
+        .filter(Boolean)
+        .map(segment => encodeURIComponent(segment))
+        .join('/');
 
-    return normalized ? `http://localhost:8001/${normalized}` : '';
-  }
+    return normalized ? `http://192.168.1.146:8001/${normalized}` : '';
+}
 
   function urgencyBadgeClass(level) {
     return { Critical: 'urgency-critical', High: 'urgency-high', Medium: 'urgency-medium', Low: 'urgency-low' }[level] || 'urgency-medium';
@@ -140,7 +139,10 @@ document.addEventListener('DOMContentLoaded', function () {
       name: complaint.user_name || '',
       contact: complaint.contact_num || '',
       status: complaint.complaint_status || 'pending',
-      urgency: complaint.urgency_level || 'Medium',
+      urgency: (() => {
+    const u = complaint.urgency_level || 'Medium';
+    return u.charAt(0).toUpperCase() + u.slice(1).toLowerCase();
+  })(),
       notes: complaint.additional_notes || '',
       date: complaint.complaint_date || '',
       created: complaint.created_at || '',
@@ -205,13 +207,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     const statusOrder = { pending: 1, in_progress: 2, resolved: 3, rejected: 4 };
-    filteredData.sort((a, b) => {
-      const statusDiff = (statusOrder[a.status.toLowerCase()] || 99) - (statusOrder[b.status.toLowerCase()] || 99);
-      if (statusDiff !== 0) return statusDiff;
+  filteredData.sort((a, b) => {
       const urgencyDiff = getUrgencyValue(b.urgency) - getUrgencyValue(a.urgency);
       if (urgencyDiff !== 0) return urgencyDiff;
+      const statusOrder = { pending: 1, in_progress: 2, resolved: 3, rejected: 4 };
+      const statusDiff = (statusOrder[a.status.toLowerCase()] || 99) - (statusOrder[b.status.toLowerCase()] || 99);
+      if (statusDiff !== 0) return statusDiff;
       return new Date(a.created).getTime() - new Date(b.created).getTime();
-    });
+  });
 
     const totalPages = Math.max(1, Math.ceil(filteredData.length / ROWS_PER_PAGE));
     if (currentPage > totalPages) currentPage = totalPages;

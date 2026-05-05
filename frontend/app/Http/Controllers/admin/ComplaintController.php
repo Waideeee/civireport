@@ -99,7 +99,7 @@ class ComplaintController extends Controller
         $pdf = Pdf::loadView('pdf.complaint', compact('complaint', 'history'))
             ->setPaper('a4', 'portrait')
             ->setOptions([
-                'isRemoteEnabled' => true,
+                'isRemoteEnabled' => false,
                 'defaultFont' => 'sans-serif'
             ]);
 

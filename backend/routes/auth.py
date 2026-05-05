@@ -1,7 +1,7 @@
 import secrets
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from mailer import send_barangay_admin_created_email
 from models.user import User
 from schemas.user import ResendVerificationRequest
 from schema_alignment import ensure_user_verification_columns
+from limiter_instance import limiter
 
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -85,12 +86,16 @@ def verify_email_token(token: str, db: Session = Depends(get_db)):
 
 
 @router.post("/resend-verification")
+@limiter.limit("5/minute")
 def resend_verification_email(
+    request: Request,
     payload: ResendVerificationRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     ensure_user_verification_columns()
+
+    _GENERIC_RESPONSE = {"message": "If this email is registered and pending verification, a new link has been sent."}
 
     user = (
         db.query(User)
@@ -99,16 +104,10 @@ def resend_verification_email(
     )
 
     if not user or (user.role or "").lower() != "barangay_admin":
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No pending Barangay Admin account was found for that email.",
-        )
+        return _GENERIC_RESPONSE
 
     if user.email_verified_at and (user.status or "").lower() in {"active", "approved"}:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This email address is already verified.",
-        )
+        return _GENERIC_RESPONSE
 
     user.email_verification_token = _generate_verification_token()
     user.email_verification_token_expires = _token_expiry()
@@ -121,7 +120,4 @@ def resend_verification_email(
 
     _queue_verification_email(background_tasks, user)
 
-    return {
-        "message": "A new verification email has been sent.",
-        "email": user.email,
-    }
+    return _GENERIC_RESPONSE

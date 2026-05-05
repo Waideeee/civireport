@@ -2,10 +2,28 @@
 
 let emergencyCheckInterval;
 let activeEmergency = null;
-let shownEmergencies = new Set();
 let audioCtx = null;
 let sirenOscillator = null;
 let sirenInterval = null;
+
+// Persist shown emergencies in sessionStorage so page navigations/redirects
+// don't reset the set and cause the same alert to re-appear.
+function loadShownEmergencies() {
+    try {
+        const raw = JSON.parse(localStorage.getItem('shownEmergencies') || '[]');
+        return new Set((Array.isArray(raw) ? raw : []).map(String));
+    } catch {
+        return new Set();
+    }
+}
+
+function saveShownEmergencies() {
+    try {
+        localStorage.setItem('shownEmergencies', JSON.stringify([...shownEmergencies]));
+    } catch { /* storage quota — ignore */ }
+}
+
+let shownEmergencies = loadShownEmergencies();
 
 document.addEventListener("DOMContentLoaded", () => {
     // Start polling every 3 seconds
@@ -21,7 +39,7 @@ async function checkPendingEmergencies() {
 
         if (data && data.length > 0) {
             // Find the oldest pending emergency that we haven't shown yet
-            const newEmergency = data.find(e => !shownEmergencies.has(e.emergency_id));
+            const newEmergency = data.find(e => !shownEmergencies.has(String(e.emergency_id)) && e.status === 'pending');
             if (newEmergency && !activeEmergency) {
                 triggerEmergencyModal(newEmergency);
             }
@@ -33,7 +51,8 @@ async function checkPendingEmergencies() {
 
 function triggerEmergencyModal(emergency) {
     activeEmergency = emergency;
-    shownEmergencies.add(emergency.emergency_id);
+    shownEmergencies.add(String(emergency.emergency_id));
+    saveShownEmergencies();
 
     // Populate Data
     document.getElementById("emergency-resident-name").innerText = emergency.user_name;
@@ -112,8 +131,16 @@ async function respondToEmergency() {
             // Close modal
             document.getElementById("global-emergency-modal").style.display = "none";
             stopSiren();
+            shownEmergencies.add(String(activeEmergency.emergency_id));
+            saveShownEmergencies();
             activeEmergency = null;
-            
+
+            // Stop polling so a queued tick can't re-trigger before the redirect completes
+            if (emergencyCheckInterval) {
+                clearInterval(emergencyCheckInterval);
+                emergencyCheckInterval = null;
+            }
+
             // Redirect to Emergency Reports page
             window.location.href = '/EmergencyReports';
         } else {

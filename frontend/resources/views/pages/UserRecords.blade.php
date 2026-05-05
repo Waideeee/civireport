@@ -95,8 +95,8 @@
 {{-- ═══════════════════════════════════════════ --}}
 <div class="ur-modal-overlay" id="approve-modal-overlay">
   <div class="ur-modal">
-    <div class="ur-modal-icon" style="padding: 0; overflow: hidden; border-radius: 50%; width: 64px; height: 64px; border: 3px solid #16a34a; display: flex; align-items: center; justify-content: center; background: #f0fdf4;">
-      <img id="approve-user-photo" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="ur-modal-icon ur-modal-photo ur-modal-photo--approve">
+      <img id="approve-user-photo" src="" alt="Profile" class="ur-modal-photo-img">
     </div>
     <div class="ur-modal-title">Approve Account</div>
     <div class="ur-modal-message">
@@ -119,8 +119,8 @@
 {{-- ═══════════════════════════════════════════ --}}
 <div class="ur-modal-overlay" id="reject-modal-overlay">
   <div class="ur-modal">
-    <div class="ur-modal-icon" style="padding: 0; overflow: hidden; border-radius: 50%; width: 64px; height: 64px; border: 3px solid #dc2626; display: flex; align-items: center; justify-content: center; background: #fef2f2;">
-      <img id="reject-user-photo" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+    <div class="ur-modal-icon ur-modal-photo ur-modal-photo--reject">
+      <img id="reject-user-photo" src="" alt="Profile" class="ur-modal-photo-img">
     </div>
     <div class="ur-modal-title">Reject Account</div>
     <div class="ur-modal-message">
@@ -158,8 +158,8 @@
 <div class="ur-modal-overlay" id="resident-modal-overlay" onclick="closeResidentModalDirect(event)">
   <div class="ur-modal ur-modal--wide">
     <div class="ur-modal-header">
-      <div style="display:flex; align-items:center; gap: 16px;">
-        <img id="res-user-photo" src="" alt="Profile" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
+      <div class="ur-modal-header-left">
+        <img id="res-user-photo" src="" alt="Profile" class="ur-modal-user-photo">
         <div class="ur-modal-header-info">
           <div class="ur-modal-title ur-modal-title--sm" id="account-modal-title">Account Details</div>
           <div class="ur-modal-subtitle" id="account-modal-subtitle">Complete profile information</div>
@@ -209,11 +209,11 @@
       </div>
     </div>
     
-    <div class="ur-modal-actions" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-        <button class="ur-btn ur-btn-approve" id="res-btn-approve" onclick="submitResidentApprove()" style="display:none; width: 100%;">
+    <div class="ur-modal-actions ur-modal-actions--footer">
+        <button class="ur-btn ur-btn-approve ur-btn--full" id="res-btn-approve" onclick="submitResidentApprove()" style="display:none;">
           Approve User
         </button>
-        <button class="ur-btn ur-btn-reject" id="res-btn-reject" onclick="showResidentRejectModal()" style="display:none; width: 100%;">
+        <button class="ur-btn ur-btn-reject ur-btn--full" id="res-btn-reject" onclick="showResidentRejectModal()" style="display:none;">
           Reject User
         </button>
     </div>

@@ -1,7 +1,8 @@
+import logging
 import secrets
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request, status
 from sqlalchemy import String, cast, func
 from sqlalchemy.orm import Session
 
@@ -12,7 +13,10 @@ from passwords import hash_password
 from routes.superadmin_auditlog import log_superadmin_audit
 from schemas.user import BarangayAdminCreate
 from schema_alignment import ensure_user_verification_columns, sync_users_user_id_sequence
+from limiter_instance import limiter
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Registration"])
 
@@ -25,7 +29,9 @@ def _verification_url(token: str) -> str:
 
 
 @router.post("/register-barangay-admin", status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 def register_barangay_admin(
+    request: Request,
     payload: BarangayAdminCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -109,9 +115,9 @@ def register_barangay_admin(
         }
     except HTTPException:
         raise
-    except Exception as e:
-        import traceback
+    except Exception:
+        logger.exception("Unexpected error in register_barangay_admin")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Backend Error: {str(e)} | Trace: {traceback.format_exc()}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed. Please try again later.",
         )

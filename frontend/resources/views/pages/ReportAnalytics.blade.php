@@ -26,6 +26,77 @@
 </script>
 
 
+@php
+  // ── Category chart explanation ──────────────────────────────────────────
+  $catLabels = data_get($analytics, 'by_category.labels', []);
+  $catValues = data_get($analytics, 'by_category.values', []);
+  if (!empty($catValues) && array_sum($catValues) > 0) {
+    $maxCatVal = max($catValues);
+    $maxCatIdx = array_search($maxCatVal, $catValues);
+    $minCatVal = min($catValues);
+    $minCatIdx = array_search($minCatVal, $catValues);
+    $catExplanation = 'The "' . ($catLabels[$maxCatIdx] ?? '') . '" category has the highest number of complaints with ' . $maxCatVal . ' cases.';
+    if ($maxCatIdx !== $minCatIdx) {
+      $catExplanation .= ' The lowest is "' . ($catLabels[$minCatIdx] ?? '') . '" with ' . $minCatVal . ' cases.';
+    }
+  } else {
+    $catExplanation = 'No sufficient complaints yet to identify the leading category.';
+  }
+
+  // ── Status chart explanation ─────────────────────────────────────────────
+  $summTotal    = (int) data_get($analytics, 'summary.total', 0);
+  $summResolved = (int) data_get($analytics, 'summary.resolved', 0);
+  $summPending  = (int) data_get($analytics, 'summary.pending', 0);
+  $summInProg   = (int) data_get($analytics, 'summary.in_progress', 0);
+  $summRejected = (int) data_get($analytics, 'summary.rejected', 0);
+  $resRate      = $summTotal > 0 ? round(($summResolved / $summTotal) * 100) : 0;
+  if ($summTotal > 0) {
+    $statusExplanation = "Out of {$summTotal} total complaints, {$summResolved} have been resolved ({$resRate}% resolution rate). There are still {$summPending} pending and {$summInProg} currently in progress.";
+    if ($summRejected > 0) {
+      $statusExplanation .= " {$summRejected} were rejected.";
+    }
+  } else {
+    $statusExplanation = 'No complaints have been received yet.';
+  }
+
+  // ── Trend chart explanation ──────────────────────────────────────────────
+  $mLabels = data_get($analytics, 'monthly.labels', []);
+  $mValues = data_get($analytics, 'monthly.values', []);
+  if (!empty($mValues) && array_sum($mValues) > 0) {
+    $peakMVal  = max($mValues);
+    $peakMIdx  = array_search($peakMVal, $mValues);
+    $lastIdx   = count($mValues) - 1;
+    $lastVal   = $mValues[$lastIdx];
+    $lastLabel = $mLabels[$lastIdx] ?? '';
+    $trendExplanation = 'The highest number of complaints was received in ' . ($mLabels[$peakMIdx] ?? '') . ' with ' . $peakMVal . ' cases.';
+    if ($peakMIdx !== $lastIdx && $lastLabel !== '') {
+      $trendExplanation .= " In {$lastLabel}, {$lastVal} " . ($lastVal === 1 ? 'complaint' : 'complaints') . ' were received.';
+    }
+  } else {
+    $trendExplanation = 'No sufficient data yet to show the monthly complaints trend.';
+  }
+
+  // ── Service rating chart explanation ─────────────────────────────────────
+  $srLabels = data_get($analytics, 'service_rating_distribution.labels', []);
+  $srValues = data_get($analytics, 'service_rating_distribution.values', []);
+  $srTotal  = !empty($srValues) ? array_sum($srValues) : 0;
+  if ($srTotal > 0) {
+    $maxSrVal  = max($srValues);
+    $maxSrIdx  = array_search($maxSrVal, $srValues);
+    $rawSrLbl  = (string) ($srLabels[$maxSrIdx] ?? ($maxSrIdx + 1));
+    $ratingNum = str_replace('STAR_', '', $rawSrLbl) ?: (string) ($maxSrIdx + 1);
+    $wSum = 0;
+    foreach ($srValues as $i => $v) {
+      $stars = (int) (str_replace('STAR_', '', (string) ($srLabels[$i] ?? ($i + 1))) ?: ($i + 1));
+      $wSum += $stars * $v;
+    }
+    $avgRating     = round($wSum / $srTotal, 1);
+    $srExplanation = "Most residents gave a {$ratingNum}-star rating ({$maxSrVal} votes). The average service rating is {$avgRating} stars from {$srTotal} residents who provided feedback.";
+  } else {
+    $srExplanation = 'No service ratings have been submitted by residents yet.';
+  }
+@endphp
+
 <div class="main">
   <div class="content">
 
@@ -99,24 +170,28 @@
         <div class="chart-container">
           <canvas id="chartCategory"></canvas>
         </div>
+        <p class="chart-explanation" id="explanation-category">{{ $catExplanation }}</p>
       </div>
       <div class="chart-card">
         <div class="chart-title">Reports by Status</div>
         <div class="chart-container">
           <canvas id="chartStatus"></canvas>
         </div>
+        <p class="chart-explanation" id="explanation-status">{{ $statusExplanation }}</p>
       </div>
       <div class="chart-card">
         <div class="chart-title">Monthly Reports Trend</div>
         <div class="chart-container">
           <canvas id="chartTrend"></canvas>
         </div>
+        <p class="chart-explanation" id="explanation-trend">{{ $trendExplanation }}</p>
       </div>
       <div class="chart-card">
         <div class="chart-title">Service Rating Distribution</div>
         <div class="chart-container">
           <canvas id="chartServiceRating"></canvas>
         </div>
+        <p class="chart-explanation" id="explanation-service-rating">{{ $srExplanation }}</p>
       </div>
     </div>
 

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from database import get_db
 from models.complaint import Complaint
 from analytics_snapshot import build_analytics_snapshot
 from openai_insights import generate_analytics_insight
+from limiter_instance import limiter
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -53,6 +54,7 @@ def get_analytics(db: Session = Depends(get_db)):
 
 
 @router.get("/insight")
-def get_analytics_insight(db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def get_analytics_insight(request: Request, db: Session = Depends(get_db)):
     snapshot = _load_analytics_snapshot(db)
     return generate_analytics_insight(snapshot)
