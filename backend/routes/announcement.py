@@ -1,5 +1,9 @@
+import os
 from datetime import datetime
+from pathlib import Path
 
+import requests
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
@@ -8,7 +12,32 @@ from models.user import User
 from schemas.announcement import AnnouncementResponse, AnnouncementCreate, AnnouncementUpdate
 from typing import List
 
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+ADMIN_BACKEND_URL = os.getenv("ADMIN_BACKEND_URL", "http://127.0.0.1:8002").rstrip("/")
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
+
 router = APIRouter(prefix="/announcements", tags=["Announcements"])
+
+
+def _send_announcement_broadcast(title: str, description: str, event_date: str, venue: str):
+    try:
+        requests.post(
+            f"{ADMIN_BACKEND_URL}/complaints/internal/broadcast",
+            headers={"X-Internal-Key": INTERNAL_API_KEY, "Content-Type": "application/json"},
+            json={
+                "message": {
+                    "type": "announcement",
+                    "title": title,
+                    "description": description,
+                    "event_date": event_date,
+                    "venue": venue,
+                },
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass
 
 @router.get("/", response_model=List[AnnouncementResponse])
 def get_announcements(db: Session = Depends(get_db)):
@@ -54,6 +83,12 @@ def create_announcement(payload: AnnouncementCreate, db: Session = Depends(get_d
     db.add(announcement)
     db.commit()
     db.refresh(announcement)
+    _send_announcement_broadcast(
+        title=announcement.announcement_title,
+        description=announcement.announcement_description,
+        event_date=str(announcement.event_date) if announcement.event_date else "",
+        venue=announcement.announcement_venue or "",
+    )
     return {
         "announcement_id": announcement.announcement_id,
         "title": announcement.announcement_title,

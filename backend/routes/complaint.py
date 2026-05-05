@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import requests
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session, joinedload
@@ -21,6 +22,29 @@ from mailer import send_complaint_resolved_email, send_complaint_update_email, s
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8001").rstrip("/")
+ADMIN_BACKEND_URL = os.getenv("ADMIN_BACKEND_URL", "http://127.0.0.1:8002").rstrip("/")
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
+
+
+def _send_status_notification(user_id: int, complaint_id: int, status: str, title: str, description: str):
+    try:
+        requests.post(
+            f"{ADMIN_BACKEND_URL}/complaints/internal/notify",
+            headers={"X-Internal-Key": INTERNAL_API_KEY, "Content-Type": "application/json"},
+            json={
+                "user_id": user_id,
+                "message": {
+                    "type": "status_update",
+                    "complaint_id": complaint_id,
+                    "status": status,
+                    "title": title,
+                    "description": description,
+                },
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass
 
 router = APIRouter(prefix="/api/complaints", tags=["Complaints"])
 
@@ -364,6 +388,13 @@ def update_complaint_status(
         )
         db.commit()
         db.refresh(complaint)
+        _send_status_notification(
+            user_id=complaint.user_id,
+            complaint_id=complaint_id,
+            status="in_progress",
+            title=complaint.complaint_subtype or "Complaint Update",
+            description=f"Your complaint is now in progress. Action taken: {complaint.resolved_notes or ''}",
+        )
         return {"message": "Complaint marked as in progress.", "complaint_id": complaint_id, "status": complaint.complaint_status}
 
     if new_status == "rejected":
@@ -383,6 +414,13 @@ def update_complaint_status(
         )
         db.commit()
         db.refresh(complaint)
+        _send_status_notification(
+            user_id=complaint.user_id,
+            complaint_id=complaint_id,
+            status="rejected",
+            title=complaint.complaint_subtype or "Complaint Update",
+            description=f"Your complaint has been rejected. Reason: {complaint.rejection_reason or ''}",
+        )
         return {"message": "Complaint rejected.", "complaint_id": complaint_id, "status": complaint.complaint_status}
 
     raise HTTPException(
