@@ -11,6 +11,7 @@ class FastApiService
     public function __construct()
     {
         $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8001');
+        $this->baseUrl = env('FASTAPI_URL', 'http://127.0.0.1:8000');
         $this->adminBackendUrl = env('ADMIN_BACKEND_URL', 'http://127.0.0.1:8002');
         $this->internalApiKey = env('INTERNAL_API_KEY');
     }
